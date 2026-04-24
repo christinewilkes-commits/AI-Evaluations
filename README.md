@@ -57,13 +57,15 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 
 ## Baseline reference
 
-| Run | Date | Model | PR | Pass rate |
-|-----|------|-------|----|-----------|
-| Run 1 (Baseline) | Apr 20, 2026 | Opus 4.7 | none | 93.3% |
-| Run 2 | Apr 20, 2026 | Sonnet 4.6 | none | 78.3% (crashed) |
-| Run 3 | Apr 20, 2026 | Sonnet 4.6 | none | 86.7% |
-| Run 4 | Apr 23, 2026 | Opus 4.7 | PR 344 | 78.7% |
-| Run 5 | Apr 23, 2026 | Sonnet 4.6 | PR 344 | 78.3% |
+| Run | Date | Model | PR | Environment | Pass rate |
+|-----|------|-------|----|-------------|-----------|
+| Run 1 (Baseline) | Apr 20, 2026 | Opus 4.7 | none | Dev | 93.3% |
+| Run 2 | Apr 20, 2026 | Sonnet 4.6 | none | Dev | 78.3% (crashed) |
+| Run 3 | Apr 20, 2026 | Sonnet 4.6 | none | Dev | 86.7% |
+| Run 4 | Apr 23, 2026 | Opus 4.7 | PR 344 | Dev | 78.7% |
+| Run 5 | Apr 23, 2026 | Sonnet 4.6 | PR 344 | Dev | 78.3% |
+| Run 6 (PR 346 Preview) | Apr 23, 2026 | Opus 4.7 | PR 346 | Preview | 93.2% |
+| **Run 7 (PR 346 Dev — current baseline)** | **Apr 24, 2026** | **Opus 4.7** | **PR 346** | **Dev (merged)** | **95.0%** |
 
 ---
 
