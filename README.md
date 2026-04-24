@@ -66,6 +66,7 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 | Run 5 | Apr 23, 2026 | Sonnet 4.6 | PR 344 | Dev | 78.3% |
 | Run 6 (PR 346 Preview) | Apr 23, 2026 | Opus 4.7 | PR 346 | Preview | 93.2% |
 | **Run 7 (PR 346 Dev — current baseline)** | **Apr 24, 2026** | **Opus 4.7** | **PR 346** | **Dev (merged)** | **95.0%** |
+| Run 8 (PR 347 Preview) | Apr 24, 2026 | Opus 4.7 | PR 347 | Preview | 89.8% |
 
 ---
 
