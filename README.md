@@ -68,6 +68,7 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 | **Run 7 (PR 346 Dev — current baseline)** | **Apr 24, 2026** | **Opus 4.7** | **PR 346** | **Dev (merged)** | **95.0%** |
 | Run 8 (PR 347 Preview) | Apr 24, 2026 | Opus 4.7 | PR 347 | Preview | 89.8% |
 | Run 9 (PR 347 Preview) | Apr 27, 2026 | Opus 4.7 | PR 347 | Preview | 77.0% |
+| Run 10 (Dev manual baseline) | Apr 27, 2026 | Opus 4.7 | — | Dev | 86.9% |
 
 ---
 
