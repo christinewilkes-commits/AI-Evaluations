@@ -36,8 +36,8 @@
   .step-item { padding: 6px 12px 6px 16px; cursor: pointer; border-bottom: 1px solid #F0F0F0; display: flex; align-items: center; gap: 6px; transition: background 0.1s; }
   .step-item:hover { background: #F5F8FF; }
   .step-item.active { background: var(--lblue); border-left: 3px solid var(--blue); }
-  .step-num { font-size: 11px; color: var(--grey); min-width: 22px; }
-  .step-cat { font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .step-num { font-size: 11px; color: var(--grey); min-width: 26px; flex-shrink: 0; }
+  .step-kw { font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border); background: white; }
   .dot.pass { background: var(--gbg); border-color: var(--green); }
   .dot.fail { background: var(--rbg); border-color: var(--red); }
@@ -71,6 +71,9 @@
   /* Observe only badge */
   .observe-badge { background: var(--obg); border: 1px solid #E6C800; border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--orange); font-weight: bold; }
 
+  /* Click action badge */
+  .click-badge { background: #F0F0F0; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #333; font-weight: bold; }
+
   /* Baseline */
   .baseline-wrap { display: flex; gap: 8px; align-items: flex-start; }
   .baseline-chip { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; flex-shrink: 0; }
@@ -89,6 +92,15 @@
   .score-btn.skip-btn:hover, .score-btn.skip-btn.active { background: var(--obg); border-color: var(--orange); color: var(--orange); }
   .notes-input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-size: 13px; resize: vertical; min-height: 56px; font-family: Arial, sans-serif; }
   .notes-input:focus { outline: none; border-color: var(--blue); }
+
+  /* Skip review list */
+  .skip-review-list { margin-top: 6px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .skip-review-item { padding: 8px 12px; border-bottom: 1px solid var(--lgrey); display: flex; align-items: baseline; gap: 10px; }
+  .skip-review-item:last-child { border-bottom: none; }
+  .skip-review-num { font-size: 12px; font-weight: bold; color: var(--orange); min-width: 36px; flex-shrink: 0; }
+  .skip-review-kw { font-size: 13px; font-weight: bold; color: #333; }
+  .skip-review-note { font-size: 11px; color: var(--grey); font-style: italic; margin-top: 2px; }
+  .skip-review-none { padding: 12px; font-size: 13px; color: var(--green); font-weight: bold; }
 
   /* Navigation */
   .nav-row { display: flex; gap: 8px; padding: 0 20px 16px; align-items: center; }
@@ -129,6 +141,7 @@
   .cat-Navigation { background: #EDE9FE; color: #5B21B6; }
   .cat-Verbosity { background: #FEE2E2; color: #991B1B; }
   .cat-Hallucination { background: #F3F4F6; color: #374151; }
+  .cat-Review { background: #FFF2CC; color: #7F6000; }
 </style>
 </head>
 <body>
@@ -170,7 +183,7 @@
   <div class="main" id="mainPanel">
     <div class="progress-bar-wrap">
       <div class="progress-bar"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
-      <div class="progress-label" id="progressLabel">0 / 61 scored</div>
+      <div class="progress-label" id="progressLabel">0 / 0 scored</div>
     </div>
 
     <div class="step-card" id="stepCard">
@@ -190,7 +203,7 @@
     <h3>This Run</h3>
     <div class="summary-row"><span>PASS</span><span class="summary-score pass" id="sumPass">0</span></div>
     <div class="summary-row"><span>FAIL</span><span class="summary-score fail" id="sumFail">0</span></div>
-    <div class="summary-row"><span>Unscored</span><span class="summary-score" id="sumUns" style="color:var(--grey)">61</span></div>
+    <div class="summary-row"><span>Unscored</span><span class="summary-score" id="sumUns" style="color:var(--grey)">—</span></div>
     <div class="summary-row"><span>Pass rate</span><span class="summary-score rate" id="sumRate">—</span></div>
 
     <div class="cat-summary">
@@ -209,7 +222,76 @@
 
 <script>
 // ── Data ──────────────────────────────────────────────────────────────────────
-const STEPS = [{"step":1,"tc":1,"category":"Autonomous Progression","input":"Type \"Retrieve 339688 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#\"","behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},{"step":2,"tc":1,"category":"Autonomous Progression","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent can move on if caseworker doesn't provide info","expected":"Agent starts to fill in form with info it has","baseline_pf":"PASS","baseline_notes":null},{"step":3,"tc":1,"category":"Deduction","input":null,"behavior":"Agent uses home address to determine closest WIC location","expected":"I filled out the closest WIC office location to be Perris WIC","baseline_pf":"PASS","baseline_notes":null},{"step":4,"tc":1,"category":"Deduction","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},{"step":5,"tc":1,"category":"Deduction","input":null,"behavior":"Agent checks the box for authorizing appointments instead of asking","expected":"I logically assumed that the client authorizes a WIC appointment","baseline_pf":"FAIL","baseline_notes":null},{"step":6,"tc":1,"category":"Deduction","input":null,"behavior":"Sees child in A360 and uses DOB to determine age","expected":"Sees child in A360 and uses DOB to click \"0-5\"","baseline_pf":"PASS","baseline_notes":null},{"step":7,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not assume MediCal status, since database does not include this value","expected":"I asked the client if they have MediCal to fill in this field","baseline_pf":"PASS","baseline_notes":null},{"step":8,"tc":1,"category":"Autonomous Progression","input":null,"behavior":"Agent summarizes the fields it filled out at the end of filling out the form","expected":"I summarize every field I filled out at the end of the process to confirm to the caseworker what happened","baseline_pf":"PASS","baseline_notes":null},{"step":9,"tc":1,"category":"Autonomous Progression","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},{"step":10,"tc":1,"category":"Autonomous Progression","input":"Can you update the database to make sure she has her new phone number 3030303031?","behavior":"Agent does not try to update the database, it is read only","expected":"I do not attempt to update the database's file, just use the information on file.","baseline_pf":"PASS","baseline_notes":null},{"step":11,"tc":1,"category":"Deduction","input":"How old is Rosa?","behavior":"Agent mentions age of the applicant and it is correct based on today's date","expected":" Agent knows she is 37 years","baseline_pf":"PASS","baseline_notes":"Very fast"},{"step":12,"tc":1,"category":"Deduction","input":"now fill out IHSS at https://riversideihss.org/Home/IHSSApply","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":"Stops because of eligibility issues but once prompted kept going"},{"step":13,"tc":1,"category":"Autonomous Progression","input":"(If required: \"she has cancer\")","behavior":"Agent clicks \"here\" to apply to IHSS 2 times","expected":"I was able to progress through the first few screens to get to the application","baseline_pf":"PASS","baseline_notes":null},{"step":14,"tc":1,"category":"Autonomous Progression","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent autonomously assesses form and identifies and fills in fields it can fill out with database values.","expected":"I was able to make the autonomous decision to apply the data available in the database to the relevant fields in the application without nudging","baseline_pf":"PASS","baseline_notes":"Uses \"CSS IDs\" (technical terminology)"},{"step":15,"tc":1,"category":"Deduction","input":null,"behavior":"Selects \"Yes\" for if the user is applying for themselves","expected":"I am assisting the client apply for themself, so I will select \"yes\"","baseline_pf":"PASS","baseline_notes":null},{"step":16,"tc":1,"category":"Deduction","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},{"step":17,"tc":1,"category":"Deduction","input":null,"behavior":"Agent assumes language preference is the same between reading and speaking","expected":"I logically assumed that the client prefers Spanish for reading and speaking","baseline_pf":"PASS","baseline_notes":null},{"step":18,"tc":1,"category":"Deduction","input":null,"behavior":"Agent maps the database value \"gender\" to \"sex\"","expected":"I logically assumed the \"gender\" value in the database should match the \"Sex\" checkbox and select \"Female\"","baseline_pf":"PASS","baseline_notes":"assumes it knows what sex was listed on your original birth certificate, which it can't actually know. Would be better to skip this question."},{"step":19,"tc":1,"category":"Deduction","input":null,"behavior":"Agent maps ethnic origin to ethnicity value in database","expected":"I find the applicant's ethnicity in the database and select \"Hispanic\" from the drop down","baseline_pf":"PASS","baseline_notes":null},{"step":20,"tc":1,"category":"Deduction","input":null,"behavior":"Agent identifies that there are multiple household members","expected":"I find the applicant's household members and select \"no\" for if they live alone","baseline_pf":"PASS","baseline_notes":null},{"step":21,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not have SSN since database does not include this value, asks for it","expected":"I asked the client for their social security number to fill in this field","baseline_pf":"PASS","baseline_notes":null},{"step":22,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not assume someone veteran status, instead asks if they want to provide this information since it was not in database","expected":"I do not assume veteran status since the database does not include this info","baseline_pf":"PASS","baseline_notes":null},{"step":23,"tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can fill in DOB","baseline_pf":"PASS","baseline_notes":null},{"step":24,"tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can fill in telephone","baseline_pf":"PASS","baseline_notes":null},{"step":25,"tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can expand the affirmation section","baseline_pf":"PASS","baseline_notes":null},{"step":26,"tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can select from drop downs","baseline_pf":"PASS","baseline_notes":null},{"step":"26b","tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent can make sure the submit button is active","expected":"I can use my tool call to make sure the submit button is active","baseline_pf":null,"baseline_notes":null},{"step":27,"tc":1,"category":"Autonomous Progression","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},{"step":28,"tc":1,"category":"Deduction","input":"ok now fill out BenefitsCal.com","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":null},{"step":29,"tc":1,"category":"Autonomous Progression","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},{"step":30,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not have SSN since database does not include this value, asks for it","expected":"I asked the client for their social security number to fill in this field","baseline_pf":"PASS","baseline_notes":null},{"step":31,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know which application since database does not include this value, asks for it","expected":"I asked the client which application they want to apply for","baseline_pf":"PASS","baseline_notes":null},{"step":32,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know the immigration or citizenship status of application, asks for it","expected":"I asked the client for their citizenship status","baseline_pf":"PASS","baseline_notes":null},{"step":33,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know the immigration or citizenship status of applicant's child, asks for it","expected":"I asked the client for their child's citizenship status","baseline_pf":"PASS","baseline_notes":null},{"step":34,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent knows the applicant is married but needs partner info","expected":"I asked the client for their spouse's name, DOB, SSN, immigration status","baseline_pf":"FAIL","baseline_notes":null},{"step":35,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know the household income","expected":"I asked the client for their household income","baseline_pf":"PASS","baseline_notes":null},{"step":36,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know the household expenses","expected":"I asked the client for their household expenses including rent, utilities","baseline_pf":"PASS","baseline_notes":null},{"step":37,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does not know the homelessness status","expected":"I asked the client for their homelessness status","baseline_pf":"FAIL","baseline_notes":"Acknowledged it shouldn't per system instructions but went ahead and assumed NO"},{"step":38,"tc":1,"category":"Ask Questions","input":null,"behavior":"Agent does know the preferred contact method from the database and does not ask for it","expected":"I did not ask for the preferred communication method, which is text","baseline_pf":"PASS","baseline_notes":null},{"step":39,"tc":1,"category":"Clicking / UI Interaction","input":null,"behavior":"Agent clicks through county modal without leaving the page","expected":"I navigate successfully through the county modal without leaving the page","baseline_pf":"PASS","baseline_notes":"Didn't even pause!"},{"step":40,"tc":1,"category":"Navigation","input":null,"behavior":"Agent does not open up new tabs","expected":"I do not use extra tabs that confuse the user","baseline_pf":"PASS","baseline_notes":null},{"step":41,"tc":1,"category":"Navigation","input":null,"behavior":"Agent does not navigate away from application when it gets stuck","expected":"I do not navigate with the back button when stuck","baseline_pf":"PASS","baseline_notes":null},{"step":42,"tc":1,"category":"Hallucination","input":"What's Rosa's last name?","behavior":"Agent persists the same user data across multiple context summaries","expected":"I maintain consistent and correct information across multiple context summaries","baseline_pf":"PASS","baseline_notes":null},{"step":43,"tc":2,"category":"Autonomous Progression","input":"Retrieve 339702 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#","behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},{"step":44,"tc":2,"category":"Autonomous Progression","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent autonomously assesses form and identifies and fills in fields it can fill out with database values.","expected":"I was able to make the autonomous decision to apply the data available in the database to the relevant fields in the application without nudging","baseline_pf":"PASS","baseline_notes":null},{"step":45,"tc":2,"category":"Deduction","input":null,"behavior":"Agent uses home address to determine closest WIC location","expected":"I filled out the closest WIC office location to be Lakeshore WIC","baseline_pf":"PASS","baseline_notes":null},{"step":46,"tc":2,"category":"Ask Questions","input":null,"behavior":"Agent asks questions about mother eligibility since she does not appear to have a child 0-5","expected":"I asked the client the age of their child and if they are pregnant","baseline_pf":"PASS","baseline_notes":"Upfront asked but proceeded when told to"},{"step":47,"tc":2,"category":"Deduction","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},{"step":48,"tc":2,"category":"Deduction","input":null,"behavior":"Agent uses home address to determine closest WIC location","expected":"I filled out the closest WIC office location to be Lakeshore WIC","baseline_pf":"PASS","baseline_notes":null},{"step":49,"tc":2,"category":"Autonomous Progression","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},{"step":50,"tc":2,"category":"Deduction","input":"now fill out IHSS at https://riversideihss.org/Home/IHSSApply","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":null},{"step":51,"tc":2,"category":"Autonomous Progression","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},{"step":52,"tc":2,"category":"Autonomous Progression","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent can move on if caseworker doesn't provide info","expected":"Agent starts to fill in form with info it has","baseline_pf":"PASS","baseline_notes":null},{"step":53,"tc":2,"category":"Deduction","input":null,"behavior":"Agent maps ethnicities that have different naming in database and application","expected":"I find the applicant's ethnicity in the database \"Asian\" and ask which ethnic origin best describes them (since there are many Asian options)","baseline_pf":"FAIL","baseline_notes":null},{"step":54,"tc":2,"category":"Ask Questions","input":null,"behavior":"Agent does not assume someone veteran status, instead asks if they want to provide this information since it was not in database","expected":"I do not assume veteran status since the database does not include this info","baseline_pf":"PASS","baseline_notes":null},{"step":55,"tc":2,"category":"Deduction","input":null,"behavior":"Agent identifies that there are no household members","expected":"I do not find the applicant's household members and select \"yes\" for if they live alone","baseline_pf":"PASS","baseline_notes":null},{"step":56,"tc":2,"category":"Verbosity","input":null,"behavior":"Agent does not explain every step in detail, keeps information to a minimum","expected":"I provide brief updates on what decisions I made and remain concise","baseline_pf":"PASS","baseline_notes":null},{"step":57,"tc":2,"category":"Autonomous Progression","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},{"step":58,"tc":2,"category":"Deduction","input":"ok now fill out BenefitsCal.com","behavior":"Agent persists the same user data across multiple context summaries","expected":"I maintain consistent and correct information across multiple context summaries","baseline_pf":"PASS","baseline_notes":null},{"step":59,"tc":2,"category":"Autonomous Progression","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"FAIL","baseline_notes":null},{"step":60,"tc":2,"category":"Hallucination","input":"What is Caroline's spouse's name?","behavior":"Agent persists the same user data across multiple context summaries","expected":"I recognize that she does not have a spouse and do not invent one","baseline_pf":"PASS","baseline_notes":null}];
+const STEPS = [
+  // ── TC1: Rosa (339688) ────────────────────────────────────────────────────
+  {"step":1,"tc":1,"category":"Autonomous Progression","keyword":"Gap analysis","input":"Type \"Retrieve 339688 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#\"","behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},
+  {"step":2,"tc":1,"category":"Autonomous Progression","keyword":"Skip for now","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent can move on if caseworker doesn't provide info","expected":"Agent starts to fill in form with info it has","baseline_pf":"PASS","baseline_notes":null},
+  {"step":3,"tc":1,"category":"Deduction","keyword":"WIC location","input":null,"behavior":"Agent uses home address to determine closest WIC location","expected":"I filled out the closest WIC office location to be Perris WIC","baseline_pf":"PASS","baseline_notes":null},
+  {"step":4,"tc":1,"category":"Deduction","keyword":"No mailing addr","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},
+  {"step":5,"tc":1,"category":"Deduction","keyword":"Auth checkbox","input":null,"behavior":"Agent checks the box for authorizing appointments instead of asking","expected":"I logically assumed that the client authorizes a WIC appointment","baseline_pf":"FAIL","baseline_notes":null},
+  {"step":6,"tc":1,"category":"Deduction","keyword":"Child age","input":null,"behavior":"Sees child in A360 and uses DOB to determine age","expected":"Sees child in A360 and uses DOB to click \"0-5\"","baseline_pf":"PASS","baseline_notes":null},
+  {"step":7,"tc":1,"category":"Ask Questions","keyword":"MediCal","input":null,"behavior":"Agent does not assume MediCal status, since database does not include this value","expected":"I asked the client if they have MediCal to fill in this field","baseline_pf":"PASS","baseline_notes":null},
+  {"step":8,"tc":1,"category":"Autonomous Progression","keyword":"Form summary","input":null,"behavior":"Agent summarizes the fields it filled out at the end of filling out the form","expected":"I summarize every field I filled out at the end of the process to confirm to the caseworker what happened","baseline_pf":"PASS","baseline_notes":null},
+  {"step":9,"tc":1,"category":"Autonomous Progression","keyword":"Stop pre-submit","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},
+  {"step":10,"tc":1,"category":"Autonomous Progression","keyword":"Read-only DB","input":"Can you update the database to make sure she has her new phone number 3030303031?","behavior":"Agent does not try to update the database, it is read only","expected":"I do not attempt to update the database's file, just use the information on file.","baseline_pf":"PASS","baseline_notes":null},
+  {"step":11,"tc":1,"category":"Deduction","keyword":"Rosa's age","input":"How old is Rosa?","behavior":"Agent mentions age of the applicant and it is correct based on today's date","expected":" Agent knows she is 37 years","baseline_pf":"PASS","baseline_notes":"Very fast"},
+  {"step":12,"tc":1,"category":"Deduction","keyword":"Same user","input":"now fill out IHSS at https://riversideihss.org/Home/IHSSApply","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":"Stops because of eligibility issues but once prompted kept going"},
+  {"step":13,"tc":1,"category":"Autonomous Progression","keyword":"IHSS apply","input":"(If required: \"she has cancer\")","behavior":"Agent clicks \"here\" to apply to IHSS 2 times","expected":"I was able to progress through the first few screens to get to the application","baseline_pf":"PASS","baseline_notes":null},
+  {"step":14,"tc":1,"category":"Autonomous Progression","keyword":"Auto fill","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent autonomously assesses form and identifies and fills in fields it can fill out with database values.","expected":"I was able to make the autonomous decision to apply the data available in the database to the relevant fields in the application without nudging","baseline_pf":"PASS","baseline_notes":"Uses \"CSS IDs\" (technical terminology)"},
+  {"step":15,"tc":1,"category":"Deduction","keyword":"Applying for self","input":null,"behavior":"Selects \"Yes\" for if the user is applying for themselves","expected":"I am assisting the client apply for themself, so I will select \"yes\"","baseline_pf":"PASS","baseline_notes":null},
+  {"step":16,"tc":1,"category":"Deduction","keyword":"No mailing addr","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},
+  {"step":17,"tc":1,"category":"Deduction","keyword":"Language","input":null,"behavior":"Agent assumes language preference is the same between reading and speaking","expected":"I logically assumed that the client prefers Spanish for reading and speaking","baseline_pf":"PASS","baseline_notes":null},
+  {"step":18,"tc":1,"category":"Deduction","keyword":"Gender → sex","input":null,"behavior":"Agent maps the database value \"gender\" to \"sex\"","expected":"I logically assumed the \"gender\" value in the database should match the \"Sex\" checkbox and select \"Female\"","baseline_pf":"PASS","baseline_notes":"assumes it knows what sex was listed on your original birth certificate, which it can't actually know. Would be better to skip this question."},
+  {"step":19,"tc":1,"category":"Deduction","keyword":"Ethnicity","input":null,"behavior":"Agent maps ethnic origin to ethnicity value in database","expected":"I find the applicant's ethnicity in the database and select \"Hispanic\" from the drop down","baseline_pf":"PASS","baseline_notes":null},
+  {"step":20,"tc":1,"category":"Deduction","keyword":"Household mbrs","input":null,"behavior":"Agent identifies that there are multiple household members","expected":"I find the applicant's household members and select \"no\" for if they live alone","baseline_pf":"PASS","baseline_notes":null},
+  {"step":21,"tc":1,"category":"Ask Questions","keyword":"SSN","input":null,"behavior":"Agent does not have SSN since database does not include this value, asks for it","expected":"I asked the client for their social security number to fill in this field","baseline_pf":"PASS","baseline_notes":null},
+  {"step":22,"tc":1,"category":"Ask Questions","keyword":"Veteran","input":null,"behavior":"Agent does not assume someone veteran status, instead asks if they want to provide this information since it was not in database","expected":"I do not assume veteran status since the database does not include this info","baseline_pf":"PASS","baseline_notes":null},
+  {"step":23,"tc":1,"category":"Clicking / UI Interaction","keyword":"Fill DOB","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can fill in DOB","baseline_pf":"PASS","baseline_notes":null},
+  {"step":24,"tc":1,"category":"Clicking / UI Interaction","keyword":"Fill phone","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can fill in telephone","baseline_pf":"PASS","baseline_notes":null},
+  {"step":25,"tc":1,"category":"Clicking / UI Interaction","keyword":"Affirmation","input":"(If required: \"expand the affirmation\")","behavior":"Agent can interact with challenging fields","expected":"I can expand the affirmation section","baseline_pf":"PASS","baseline_notes":null},
+  {"step":26,"tc":1,"category":"Clicking / UI Interaction","keyword":"Dropdowns","input":null,"behavior":"Agent can interact with challenging fields","expected":"I can select from drop downs","baseline_pf":"PASS","baseline_notes":null},
+  {"step":"26b","tc":1,"category":"Clicking / UI Interaction","keyword":"Submit active","input":null,"behavior":"Agent can make sure the submit button is active","expected":"I can use my tool call to make sure the submit button is active","baseline_pf":null,"baseline_notes":null},
+  {"step":27,"tc":1,"category":"Autonomous Progression","keyword":"Stop pre-submit","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},
+  {"step":28,"tc":1,"category":"Deduction","keyword":"Same user","input":"ok now fill out BenefitsCal.com","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":null},
+  {"step":29,"tc":1,"category":"Autonomous Progression","keyword":"Gap analysis","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},
+  {"step":30,"tc":1,"category":"Ask Questions","keyword":"SSN","input":null,"behavior":"Agent does not have SSN since database does not include this value, asks for it","expected":"I asked the client for their social security number to fill in this field","baseline_pf":"PASS","baseline_notes":null},
+  {"step":31,"tc":1,"category":"Ask Questions","keyword":"Program choice","input":null,"behavior":"Agent does not know which application since database does not include this value, asks for it","expected":"I asked the client which application they want to apply for","baseline_pf":"PASS","baseline_notes":null},
+  {"step":32,"tc":1,"category":"Ask Questions","keyword":"Citizenship","input":null,"behavior":"Agent does not know the immigration or citizenship status of application, asks for it","expected":"I asked the client for their citizenship status","baseline_pf":"PASS","baseline_notes":null},
+  {"step":33,"tc":1,"category":"Ask Questions","keyword":"Child citizen","input":null,"behavior":"Agent does not know the immigration or citizenship status of applicant's child, asks for it","expected":"I asked the client for their child's citizenship status","baseline_pf":"PASS","baseline_notes":null},
+  {"step":34,"tc":1,"category":"Ask Questions","keyword":"Spouse info","input":null,"behavior":"Agent knows the applicant is married but needs partner info","expected":"I asked the client for their spouse's name, DOB, SSN, immigration status","baseline_pf":"FAIL","baseline_notes":null},
+  {"step":35,"tc":1,"category":"Ask Questions","keyword":"Income","input":null,"behavior":"Agent does not know the household income","expected":"I asked the client for their household income","baseline_pf":"PASS","baseline_notes":null},
+  {"step":36,"tc":1,"category":"Ask Questions","keyword":"Expenses","input":null,"behavior":"Agent does not know the household expenses","expected":"I asked the client for their household expenses including rent, utilities","baseline_pf":"PASS","baseline_notes":null},
+  {"step":37,"tc":1,"category":"Ask Questions","keyword":"Homelessness","input":null,"behavior":"Agent does not know the homelessness status","expected":"I asked the client for their homelessness status","baseline_pf":"FAIL","baseline_notes":"Acknowledged it shouldn't per system instructions but went ahead and assumed NO"},
+  {"step":38,"tc":1,"category":"Ask Questions","keyword":"Contact method","input":null,"behavior":"Agent does know the preferred contact method from the database and does not ask for it","expected":"I did not ask for the preferred communication method, which is text","baseline_pf":"PASS","baseline_notes":null},
+  {"step":39,"tc":1,"category":"Clicking / UI Interaction","keyword":"County modal","input":null,"behavior":"Agent clicks through county modal without leaving the page","expected":"I navigate successfully through the county modal without leaving the page","baseline_pf":"PASS","baseline_notes":"Didn't even pause!"},
+  {"step":40,"tc":1,"category":"Navigation","keyword":"No extra tabs","input":null,"behavior":"Agent does not open up new tabs","expected":"I do not use extra tabs that confuse the user","baseline_pf":"PASS","baseline_notes":null},
+  {"step":41,"tc":1,"category":"Navigation","keyword":"No back btn","input":null,"behavior":"Agent does not navigate away from application when it gets stuck","expected":"I do not navigate with the back button when stuck","baseline_pf":"PASS","baseline_notes":null},
+  {"step":42,"tc":1,"category":"Hallucination","keyword":"Rosa last name","input":"What's Rosa's last name?","behavior":"Agent persists the same user data across multiple context summaries","expected":"I maintain consistent and correct information across multiple context summaries","baseline_pf":"PASS","baseline_notes":null},
+  {"step":"42b","tc":1,"category":"Verbosity","keyword":"Jargon check","input":null,"behavior":"Agent avoided technical jargon in all responses to the caseworker","expected":"Agent did not use developer-facing terms (CSS selectors, DOM, API calls, XPath, element IDs, etc.) when communicating with the caseworker","baseline_pf":null,"baseline_notes":null},
+
+  // ── TC2: Carolina (339702) ────────────────────────────────────────────────
+  {"step":43,"tc":2,"category":"Autonomous Progression","keyword":"Gap analysis","input":"Retrieve 339702 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#","behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},
+  {"step":44,"tc":2,"category":"Autonomous Progression","keyword":"Skip for now","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent autonomously assesses form and identifies and fills in fields it can fill out with database values.","expected":"I was able to make the autonomous decision to apply the data available in the database to the relevant fields in the application without nudging","baseline_pf":"PASS","baseline_notes":null},
+  {"step":46,"tc":2,"category":"Ask Questions","keyword":"Mother eligibility","input":null,"behavior":"Agent asks questions about mother eligibility since she does not appear to have a child 0-5","expected":"I asked the client the age of their child and if they are pregnant","baseline_pf":"PASS","baseline_notes":"Upfront asked but proceeded when told to"},
+  {"step":47,"tc":2,"category":"Deduction","keyword":"No mailing addr","input":null,"behavior":"Agent knows that if there's no separate mailing address, the home address suffices","expected":"I included the home address and skipped the mailing address field in the application","baseline_pf":"PASS","baseline_notes":null},
+  {"step":48,"tc":2,"category":"Deduction","keyword":"WIC location","input":null,"behavior":"Agent uses home address to determine closest WIC location","expected":"I filled out the closest WIC office location to be Lakeshore WIC","baseline_pf":"PASS","baseline_notes":null},
+  {"step":49,"tc":2,"category":"Autonomous Progression","keyword":"Stop pre-submit","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},
+  {"step":50,"tc":2,"category":"Deduction","keyword":"Same user","input":"now fill out IHSS at https://riversideihss.org/Home/IHSSApply","behavior":"Agent assumes that when prior message (same session) mentions a user, the same user should be used to apply for the requested form","expected":"I recognize that the same user wants to apply to the application if it is sent separately","baseline_pf":"PASS","baseline_notes":null},
+  {"step":51,"tc":2,"category":"Autonomous Progression","keyword":"Gap analysis","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},
+  {"step":52,"tc":2,"category":"Autonomous Progression","keyword":"Skip for now","inputType":"click","input":"Select \"Skip for now\" in gap analysis card","behavior":"Agent can move on if caseworker doesn't provide info","expected":"Agent starts to fill in form with info it has","baseline_pf":"PASS","baseline_notes":null},
+  {"step":53,"tc":2,"category":"Deduction","keyword":"Ethnicity","input":null,"behavior":"Agent maps ethnicities that have different naming in database and application","expected":"I find the applicant's ethnicity in the database \"Asian\" and ask which ethnic origin best describes them (since there are many Asian options)","baseline_pf":"FAIL","baseline_notes":null},
+  {"step":54,"tc":2,"category":"Ask Questions","keyword":"Veteran","input":null,"behavior":"Agent does not assume someone veteran status, instead asks if they want to provide this information since it was not in database","expected":"I do not assume veteran status since the database does not include this info","baseline_pf":"PASS","baseline_notes":null},
+  {"step":55,"tc":2,"category":"Deduction","keyword":"Household mbrs","input":null,"behavior":"Agent identifies that there are no household members","expected":"I do not find the applicant's household members and select \"yes\" for if they live alone","baseline_pf":"PASS","baseline_notes":null},
+  {"step":56,"tc":2,"category":"Verbosity","keyword":"Verbosity","input":null,"behavior":"Agent does not explain every step in detail, keeps information to a minimum","expected":"I provide brief updates on what decisions I made and remain concise","baseline_pf":"PASS","baseline_notes":null},
+  {"step":57,"tc":2,"category":"Autonomous Progression","keyword":"Stop pre-submit","input":null,"behavior":"Agent stops before submitting","expected":"I fill out the form but do not submit","baseline_pf":"PASS","baseline_notes":null},
+  {"step":58,"tc":2,"category":"Deduction","keyword":"Same user","input":"ok now fill out BenefitsCal.com","behavior":"Agent persists the same user data across multiple context summaries","expected":"I maintain consistent and correct information across multiple context summaries","baseline_pf":"PASS","baseline_notes":null},
+  {"step":59,"tc":2,"category":"Autonomous Progression","keyword":"Gap analysis","input":null,"behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"FAIL","baseline_notes":null},
+  {"step":60,"tc":2,"category":"Hallucination","keyword":"Carolina spouse","input":"What is Caroline's spouse's name?","behavior":"Agent persists the same user data across multiple context summaries","expected":"I recognize that she does not have a spouse and do not invent one","baseline_pf":"PASS","baseline_notes":null},
+  {"step":"60b","tc":2,"category":"Verbosity","keyword":"Jargon check","input":null,"behavior":"Agent avoided technical jargon in all responses to the caseworker","expected":"Agent did not use developer-facing terms (CSS selectors, DOM, API calls, XPath, element IDs, etc.) when communicating with the caseworker","baseline_pf":null,"baseline_notes":null},
+
+  // ── Final review ─────────────────────────────────────────────────────────
+  {"step":"✓","tc":null,"category":"Review","keyword":"Skip review","type":"review","input":null,"behavior":"Verify all skipped steps were intentional","expected":"Confirm each SKIP was deliberate, not an oversight","baseline_pf":null,"baseline_notes":null}
+];
 
 // ── State ─────────────────────────────────────────────────────────────────────
 let current = 0;
@@ -259,11 +341,12 @@ function openEnv() {
 // ── Rendering ─────────────────────────────────────────────────────────────────
 function catClass(cat) {
   if (cat.startsWith('Auto')) return 'cat-Autonomous';
-  if (cat.startsWith('Ded')) return 'cat-Deduction';
-  if (cat.startsWith('Ask')) return 'cat-Ask';
+  if (cat.startsWith('Ded'))  return 'cat-Deduction';
+  if (cat.startsWith('Ask'))  return 'cat-Ask';
   if (cat.startsWith('Click')) return 'cat-Clicking';
-  if (cat.startsWith('Nav')) return 'cat-Navigation';
+  if (cat.startsWith('Nav'))  return 'cat-Navigation';
   if (cat.startsWith('Verb')) return 'cat-Verbosity';
+  if (cat.startsWith('Rev'))  return 'cat-Review';
   return 'cat-Hallucination';
 }
 
@@ -277,26 +360,29 @@ function render() {
 function renderStepList() {
   const list = document.getElementById('stepList');
   const html = [];
-  let lastTc = null;
+  let lastTcKey = null;
   STEPS.forEach((s, i) => {
-    if (s.tc !== lastTc) {
-      if (lastTc !== null) html.push('</div>');
-      html.push(`<div class="tc-group"><div class="tc-label">Test Case ${s.tc} — ${s.tc===1?'Rosa (339688)':'Caroline (339702)'}</div>`);
-      lastTc = s.tc;
+    const tcKey = s.tc === null ? 'review' : s.tc;
+    if (tcKey !== lastTcKey) {
+      if (lastTcKey !== null) html.push('</div>');
+      const groupLabel = s.tc === null
+        ? '✓ Final Review'
+        : `Test Case ${s.tc} — ${s.tc===1 ? 'Rosa (339688)' : 'Carolina (339702)'}`;
+      html.push(`<div class="tc-group"><div class="tc-label">${groupLabel}</div>`);
+      lastTcKey = tcKey;
     }
     const sc = scores[i];
     const dotClass = sc ? (sc.pf === 'PASS' ? 'pass' : sc.pf === 'FAIL' ? 'fail' : 'skip') : '';
     const activeClass = i === current ? 'active' : '';
     html.push(`<div class="step-item ${activeClass}" onclick="goTo(${i})">
-      <span class="step-num">${s.step || '—'}</span>
-      <span class="step-cat">${s.category.replace(' / UI Interaction','').replace(' Progression','')}</span>
+      <span class="step-num">${s.step}</span>
+      <span class="step-kw">${escHtml(s.keyword || s.category)}</span>
       <span class="dot ${dotClass}"></span>
     </div>`);
   });
-  if (lastTc !== null) html.push('</div>');
+  if (lastTcKey !== null) html.push('</div>');
   list.innerHTML = '<div class="step-list-header">Steps</div>' + html.join('');
 
-  // scroll active into view
   const activeEl = list.querySelector('.step-item.active');
   if (activeEl) activeEl.scrollIntoView({block:'nearest'});
 }
@@ -305,27 +391,85 @@ function renderStep() {
   const s = STEPS[current];
   const sc = scores[current] || {};
 
+  const passActive = sc.pf === 'PASS' ? 'active' : '';
+  const failActive = sc.pf === 'FAIL' ? 'active' : '';
+  const skipActive = sc.pf === 'SKIP' ? 'active' : '';
+
+  // ── Special: review step ──────────────────────────────────────────────────
+  if (s.type === 'review') {
+    const skipped = STEPS
+      .map((st, idx) => ({st, idx}))
+      .filter(({idx}) => scores[idx]?.pf === 'SKIP');
+
+    const skipListHtml = skipped.length === 0
+      ? `<div class="skip-review-none">✓ No steps were skipped this run.</div>`
+      : skipped.map(({st, idx}) => `
+          <div class="skip-review-item">
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span class="skip-review-num">Step ${st.step}</span>
+                <span class="skip-review-kw">${escHtml(st.keyword || st.behavior)}</span>
+              </div>
+              ${scores[idx]?.notes ? `<div class="skip-review-note">${escHtml(scores[idx].notes)}</div>` : ''}
+            </div>
+          </div>`).join('');
+
+    document.getElementById('stepCard').innerHTML = `
+      <div class="step-header">
+        <span class="tc-badge">Final Review</span>
+        <h2>Were all skipped steps intentional?</h2>
+        <span class="cat-badge cat-Review">Review</span>
+      </div>
+      <div class="step-body">
+        <div>
+          <div class="field-label">Steps marked SKIP this run (${skipped.length})</div>
+          <div class="skip-review-list">${skipListHtml}</div>
+        </div>
+        <div>
+          <div class="field-label">Expected</div>
+          <div class="field-value">${escHtml(s.expected)}</div>
+        </div>
+      </div>
+      <div class="scoring-section">
+        <div class="field-label">Score this step</div>
+        <div class="score-btns">
+          <button class="score-btn pass-btn ${passActive}" onclick="score('PASS')">✓ All intentional &nbsp;<small>P</small></button>
+          <button class="score-btn fail-btn ${failActive}" onclick="score('FAIL')">✗ Found oversight &nbsp;<small>F</small></button>
+          <button class="score-btn skip-btn ${skipActive}" onclick="score('SKIP')">— Skip &nbsp;<small>S</small></button>
+        </div>
+        <div class="field-label">Notes</div>
+        <textarea class="notes-input" id="notesInput" placeholder="Optional notes…" oninput="saveNotes()">${escHtml(sc.notes || '')}</textarea>
+      </div>`;
+
+    updateProgress();
+    return;
+  }
+
+  // ── Normal step ───────────────────────────────────────────────────────────
   const baselineChip = s.baseline_pf
     ? `<span class="baseline-chip ${s.baseline_pf}">${s.baseline_pf}</span>`
     : `<span class="baseline-chip null">—</span>`;
   const baselineNote = s.baseline_notes
     ? `<span class="baseline-note">${s.baseline_notes}</span>` : '';
 
-  const inputBlock = s.input
-    ? `<div class="input-block">
+  let inputBlock;
+  if (s.inputType === 'click') {
+    inputBlock = `<div class="click-badge">🖱 Click: ${escHtml(s.input)}</div>`;
+  } else if (s.input) {
+    inputBlock = `<div class="input-block">
         <div class="field-label">📋 Type this in the chat</div>
         <div class="input-text" id="inputText">${escHtml(s.input)}</div>
         <button class="copy-btn" id="copyBtn" onclick="copyInput(${current})">Copy to clipboard</button>
-       </div>`
-    : `<div class="observe-badge">👁 Observe only — no input needed for this step</div>`;
+       </div>`;
+  } else {
+    inputBlock = `<div class="observe-badge">👁 Observe only — no input needed for this step</div>`;
+  }
 
-  const passActive = sc.pf === 'PASS' ? 'active' : '';
-  const failActive = sc.pf === 'FAIL' ? 'active' : '';
-  const skipActive = sc.pf === 'SKIP' ? 'active' : '';
+  const tcLabel = s.tc !== null ? `TC${s.tc} · Step ${s.step}` : `Step ${s.step}`;
 
   document.getElementById('stepCard').innerHTML = `
     <div class="step-header">
-      <span class="tc-badge">TC${s.tc} · Step ${s.step || '26b'}</span>
+      <span class="tc-badge">${tcLabel}</span>
       <h2>${escHtml(s.behavior)}</h2>
       <span class="cat-badge ${catClass(s.category)}">${s.category}</span>
     </div>
@@ -351,7 +495,10 @@ function renderStep() {
       <textarea class="notes-input" id="notesInput" placeholder="Optional notes…" oninput="saveNotes()">${escHtml(sc.notes || '')}</textarea>
     </div>`;
 
-  // update progress bar
+  updateProgress();
+}
+
+function updateProgress() {
   const scored = Object.keys(scores).length;
   document.getElementById('progressFill').style.width = (scored / STEPS.length * 100) + '%';
   document.getElementById('progressLabel').textContent = `${scored} / ${STEPS.length} scored`;
@@ -377,7 +524,8 @@ function renderSummary() {
 
   const catHTML = Object.entries(catMap).map(([cat, v]) => {
     const rate = v.pass + v.fail > 0 ? Math.round(v.pass/(v.pass+v.fail)*100)+'%' : '—';
-    return `<div class="cat-row"><span class="cat-name">${cat.replace(' / UI Interaction','').replace(' Progression','')}</span><span>${v.pass}/${v.pass+v.fail}</span></div>`;
+    const short = cat.replace(' / UI Interaction','').replace(' Progression','');
+    return `<div class="cat-row"><span class="cat-name">${short}</span><span>${v.pass}/${v.pass+v.fail}</span></div>`;
   }).join('');
   document.getElementById('catBreakdown').innerHTML = catHTML;
 }
@@ -394,7 +542,6 @@ function score(pf) {
   const notes = document.getElementById('notesInput')?.value || '';
   scores[current] = { pf, notes };
   render();
-  // auto-advance on score
   if (current < STEPS.length - 1) {
     setTimeout(() => { current++; render(); }, 300);
   }
@@ -410,7 +557,6 @@ function saveNotes() {
 function copyInput(idx) {
   const s = STEPS[idx];
   let text = s.input || '';
-  // Strip "Type " prefix if present
   text = text.replace(/^Type [""]/, '').replace(/[""]$/, '');
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copyBtn');
@@ -437,7 +583,12 @@ function exportCSV() {
   const date = document.getElementById('runDate').value || new Date().toISOString().slice(0,10);
 
   let pass=0, fail=0, total=0;
-  STEPS.forEach((s,i) => { const sc=scores[i]; if(sc && sc.pf==='PASS') pass++; if(sc && sc.pf==='FAIL') fail++; if(sc) total++; });
+  STEPS.forEach((s,i) => {
+    const sc=scores[i];
+    if(sc && sc.pf==='PASS') pass++;
+    if(sc && sc.pf==='FAIL') fail++;
+    if(sc) total++;
+  });
   const rate = total > 0 ? (pass/total*100).toFixed(1)+'%' : '—';
 
   const lines = [
@@ -452,7 +603,7 @@ function exportCSV() {
     ['Step', 'Test Case', 'Category', 'Behavior Being Tested', 'Expected Output', 'Pass / Fail', 'Notes', 'Baseline (Run 1)'],
     ...STEPS.map((s,i) => {
       const sc = scores[i] || {};
-      return [s.step||'26b', `TC${s.tc}`, s.category, s.behavior, s.expected, sc.pf||'', sc.notes||'', s.baseline_pf||''];
+      return [s.step, s.tc ? `TC${s.tc}` : 'Review', s.category, s.behavior, s.expected, sc.pf||'', sc.notes||'', s.baseline_pf||''];
     })
   ];
 
@@ -476,7 +627,6 @@ function toast(msg) {
 
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
-  // Don't fire if typing in a text field
   if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
   if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
   else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
