@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Eval Runner — New Users (TC3–TC5)</title>
+<style>
+  :root {
+    --navy: #1F3864; --blue: #2E75B6; --lblue: #D6E4F0;
+    --green: #375623; --gbg: #E2EFDA; --red: #9C0006; --rbg: #FCE4D6;
+    --orange: #7F6000; --obg: #FFF2CC; --grey: #595959; --lgrey: #F2F2F2;
+    --border: #CCCCCC;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 14px; background: #F8F9FA; color: #222; }
+
+  /* ── Header ── */
+  header { background: var(--navy); color: white; padding: 12px 20px; display: flex; align-items: center; gap: 16px; }
+  header h1 { font-size: 16px; font-weight: bold; flex: 1; }
+  .run-badge { background: var(--blue); padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+
+  /* ── Config bar ── */
+  .config-bar { background: white; border-bottom: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .config-bar label { font-size: 12px; color: var(--grey); font-weight: bold; }
+  .config-bar input, .config-bar select { border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 13px; }
+  .config-bar input { width: 200px; }
+
+  /* ── Layout ── */
+  .layout { display: flex; height: calc(100vh - 96px); overflow: hidden; }
+
+  /* ── Left panel: step list ── */
+  .step-list { width: 220px; min-width: 220px; background: white; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+  .step-list-header { padding: 8px 12px; font-size: 11px; font-weight: bold; color: var(--grey); text-transform: uppercase; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: white; z-index: 1; }
+  .tc-group { border-bottom: 2px solid var(--lblue); }
+  .tc-label { padding: 6px 12px; font-size: 11px; font-weight: bold; color: var(--navy); background: var(--lblue); text-transform: uppercase; }
+  .step-item { padding: 6px 12px 6px 16px; cursor: pointer; border-bottom: 1px solid #F0F0F0; display: flex; align-items: center; gap: 6px; transition: background 0.1s; }
+  .step-item:hover { background: #F5F8FF; }
+  .step-item.active { background: var(--lblue); border-left: 3px solid var(--blue); }
+  .step-num { font-size: 11px; color: var(--grey); min-width: 26px; flex-shrink: 0; }
+  .step-kw { font-size: 11px; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; border: 1px solid var(--border); background: white; }
+  .dot.pass { background: var(--gbg); border-color: var(--green); }
+  .dot.fail { background: var(--rbg); border-color: var(--red); }
+  .dot.skip { background: var(--obg); border-color: var(--orange); }
+
+  /* ── Main panel ── */
+  .main { flex: 1; overflow-y: auto; padding: 0; display: flex; flex-direction: column; }
+  .progress-bar-wrap { padding: 8px 20px 0; }
+  .progress-bar { height: 4px; background: var(--lgrey); border-radius: 2px; }
+  .progress-bar-fill { height: 100%; background: var(--blue); border-radius: 2px; transition: width 0.3s; }
+  .progress-label { font-size: 11px; color: var(--grey); margin-top: 2px; }
+
+  .step-card { margin: 12px 20px; background: white; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .step-header { padding: 12px 16px; background: var(--navy); display: flex; align-items: center; gap: 10px; }
+  .step-header h2 { color: white; font-size: 14px; flex: 1; }
+  .cat-badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: var(--lblue); color: var(--navy); }
+  .tc-badge { padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold; background: rgba(255,255,255,0.2); color: white; }
+
+  .step-body { padding: 14px 16px; display: grid; gap: 10px; }
+  .field-label { font-size: 11px; font-weight: bold; color: var(--grey); text-transform: uppercase; margin-bottom: 3px; }
+  .field-value { font-size: 13px; line-height: 1.4; }
+
+  /* Input block */
+  .input-block { background: #F0F7FF; border: 1px solid var(--blue); border-radius: 6px; padding: 10px 12px; }
+  .input-block .field-label { color: var(--blue); }
+  .input-text { font-size: 14px; font-weight: bold; color: var(--navy); margin: 4px 0 8px; line-height: 1.4; }
+  .copy-btn { background: var(--blue); color: white; border: none; padding: 5px 14px; border-radius: 4px; font-size: 12px; cursor: pointer; transition: background 0.1s; }
+  .copy-btn:hover { background: var(--navy); }
+  .copy-btn.copied { background: var(--green); }
+
+  /* Observe only badge */
+  .observe-badge { background: var(--obg); border: 1px solid #E6C800; border-radius: 6px; padding: 6px 12px; font-size: 12px; color: var(--orange); font-weight: bold; }
+
+  /* Click action badge */
+  .click-badge { background: #F0F0F0; border: 1px solid var(--border); border-radius: 6px; padding: 8px 12px; font-size: 13px; color: #333; font-weight: bold; }
+
+  /* Baseline */
+  .baseline-wrap { display: flex; gap: 8px; align-items: flex-start; }
+  .baseline-chip { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; flex-shrink: 0; }
+  .baseline-chip.PASS { background: var(--gbg); color: var(--green); }
+  .baseline-chip.FAIL { background: var(--rbg); color: var(--red); }
+  .baseline-chip.null { background: var(--lgrey); color: var(--grey); }
+  .baseline-note { font-size: 12px; color: var(--grey); font-style: italic; }
+
+  /* Scoring section */
+  .scoring-section { padding: 14px 16px; border-top: 1px solid var(--lgrey); background: #FAFAFA; }
+  .scoring-section .field-label { margin-bottom: 8px; }
+  .score-btns { display: flex; gap: 8px; margin-bottom: 10px; }
+  .score-btn { flex: 1; padding: 10px; border: 2px solid var(--border); background: white; border-radius: 6px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.1s; }
+  .score-btn.pass-btn:hover, .score-btn.pass-btn.active { background: var(--gbg); border-color: var(--green); color: var(--green); }
+  .score-btn.fail-btn:hover, .score-btn.fail-btn.active { background: var(--rbg); border-color: var(--red); color: var(--red); }
+  .score-btn.skip-btn:hover, .score-btn.skip-btn.active { background: var(--obg); border-color: var(--orange); color: var(--orange); }
+  .notes-input { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 8px; font-size: 13px; resize: vertical; min-height: 56px; font-family: Arial, sans-serif; }
+  .notes-input:focus { outline: none; border-color: var(--blue); }
+
+  /* Skip review list */
+  .skip-review-list { margin-top: 6px; border: 1px solid var(--border); border-radius: 6px; overflow: hidden; }
+  .skip-review-item { padding: 8px 12px; border-bottom: 1px solid var(--lgrey); display: flex; align-items: baseline; gap: 10px; }
+  .skip-review-item:last-child { border-bottom: none; }
+  .skip-review-num { font-size: 12px; font-weight: bold; color: var(--orange); min-width: 36px; flex-shrink: 0; }
+  .skip-review-kw { font-size: 13px; font-weight: bold; color: #333; }
+  .skip-review-note { font-size: 11px; color: var(--grey); font-style: italic; margin-top: 2px; }
+  .skip-review-none { padding: 12px; font-size: 13px; color: var(--green); font-weight: bold; }
+
+  /* Navigation */
+  .nav-row { display: flex; gap: 8px; padding: 0 20px 16px; align-items: center; }
+  .nav-btn { padding: 8px 18px; background: white; border: 1px solid var(--border); border-radius: 4px; cursor: pointer; font-size: 13px; transition: background 0.1s; }
+  .nav-btn:hover { background: var(--lgrey); }
+  .nav-btn.primary { background: var(--blue); color: white; border-color: var(--blue); }
+  .nav-btn.primary:hover { background: var(--navy); }
+  .nav-spacer { flex: 1; }
+  .shortcut-hint { font-size: 11px; color: var(--grey); }
+
+  /* ── Right panel: summary ── */
+  .summary-panel { width: 200px; min-width: 200px; background: white; border-left: 1px solid var(--border); padding: 12px; overflow-y: auto; flex-shrink: 0; }
+  .summary-panel h3 { font-size: 12px; font-weight: bold; color: var(--navy); text-transform: uppercase; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; font-size: 12px; }
+  .summary-score { font-weight: bold; font-size: 14px; }
+  .summary-score.pass { color: var(--green); }
+  .summary-score.fail { color: var(--red); }
+  .summary-score.rate { color: var(--navy); }
+  .cat-summary { margin-top: 10px; }
+  .cat-row { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 3px; }
+  .cat-name { color: var(--grey); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 120px; }
+
+  /* Export button */
+  .export-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .export-btn { width: 100%; padding: 8px; background: var(--navy); color: white; border: none; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+  .export-btn:hover { background: var(--blue); }
+  .clear-btn { width: 100%; padding: 6px; background: white; color: var(--red); border: 1px solid var(--rbg); border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 4px; }
+
+  /* Toast */
+  .toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
+  .toast.show { opacity: 1; }
+
+  /* Category colors */
+  .cat-Autonomous { background: #E8F0FE; color: #1A56A0; }
+  .cat-Deduction { background: #FEF3C7; color: #92400E; }
+  .cat-Ask { background: #D1FAE5; color: #065F46; }
+  .cat-Clicking { background: #FCE7F3; color: #9D174D; }
+  .cat-Navigation { background: #EDE9FE; color: #5B21B6; }
+  .cat-Verbosity { background: #FEE2E2; color: #991B1B; }
+  .cat-Hallucination { background: #F3F4F6; color: #374151; }
+  .cat-Review { background: #FFF2CC; color: #7F6000; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🧪 Agent Evaluation Runner — New Users</h1>
+  <span class="run-badge" id="runBadge">New Run</span>
+</header>
+
+<div class="config-bar">
+  <label>Run Label:</label>
+  <input type="text" id="runLabel" placeholder="e.g. Run 1 — Sonnet 4.6" oninput="saveConfig()">
+  <label>Model:</label>
+  <select id="modelSelect" onchange="saveConfig()">
+    <option value="">Select model…</option>
+    <option value="claude-opus-4-6">Claude Opus 4.6</option>
+    <option value="claude-sonnet-4-6">Claude Sonnet 4.6</option>
+    <option value="claude-haiku-4-5">Claude Haiku 4.5</option>
+    <option value="other">Other</option>
+  </select>
+  <label>Environment:</label>
+  <select id="envSelect" onchange="openEnv()">
+    <option value="">Select environment…</option>
+    <option value="https://dev.labs-asp.navateam.com">Dev</option>
+    <option value="https://labs-asp.navateam.com">Prod</option>
+  </select>
+  <label>Date:</label>
+  <input type="date" id="runDate" oninput="saveConfig()">
+</div>
+
+<div class="layout">
+
+  <!-- Step list -->
+  <div class="step-list" id="stepList">
+    <div class="step-list-header">Steps</div>
+  </div>
+
+  <!-- Main -->
+  <div class="main" id="mainPanel">
+    <div class="progress-bar-wrap">
+      <div class="progress-bar"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="progress-label" id="progressLabel">0 / 0 scored</div>
+    </div>
+
+    <div class="step-card" id="stepCard">
+      <!-- filled by JS -->
+    </div>
+
+    <div class="nav-row">
+      <button class="nav-btn" onclick="navigate(-1)">← Previous</button>
+      <span class="shortcut-hint">Keyboard: <b>P</b>=Pass &nbsp; <b>F</b>=Fail &nbsp; <b>S</b>=Skip &nbsp; <b>→</b>=Next &nbsp; <b>←</b>=Prev</span>
+      <div class="nav-spacer"></div>
+      <button class="nav-btn primary" onclick="navigate(1)">Next →</button>
+    </div>
+  </div>
+
+  <!-- Summary panel -->
+  <div class="summary-panel">
+    <h3>This Run</h3>
+    <div class="summary-row"><span>PASS</span><span class="summary-score pass" id="sumPass">0</span></div>
+    <div class="summary-row"><span>FAIL</span><span class="summary-score fail" id="sumFail">0</span></div>
+    <div class="summary-row"><span>Unscored</span><span class="summary-score" id="sumUns" style="color:var(--grey)">—</span></div>
+    <div class="summary-row"><span>Pass rate</span><span class="summary-score rate" id="sumRate">—</span></div>
+
+    <div class="cat-summary">
+      <h3 style="margin-top:10px">By Category</h3>
+      <div id="catBreakdown"></div>
+    </div>
+
+    <div class="export-section">
+      <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="clear-btn" onclick="clearRun()">Clear this run</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────────────────────
+const STEPS = [
+
+  // ── TC3: Linh NAVA Thomas XXII (339748) ───────────────────────────────────
+  // Asian, English, Female, Parent, DOB 1995-03-15, PERRIS CA 92570, No special needs
+  // Married. Linked child: Baby 339750 (DOB 2022-06-01, WIC-eligible ~age 3)
+  // Preferred contact: Text
+
+  {"step":1,"tc":3,"category":"Autonomous Progression","keyword":"Gap analysis",
+   "input":"Type \"Retrieve 339748 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#\"",
+   "behavior":"Agent provides gap analysis of missing fields for Linh before filling out WIC",
+   "expected":"Agent provides a list of fields it can fill from A360 vs. fields it needs to ask about",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":2,"tc":3,"category":"Autonomous Progression","keyword":"Skip for now",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill WIC form with Linh's available A360 data",
+   "expected":"Agent starts filling in WIC form with Linh's data without waiting for more input",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":3,"tc":3,"category":"Deduction","keyword":"WIC location — Perris",
+   "input":null,
+   "behavior":"Agent uses Linh's home address (Perris, 92570) to select the correct WIC office",
+   "expected":"Agent selects the Perris WIC office (or closest to zip 92570)",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":4,"tc":3,"category":"Deduction","keyword":"No mailing addr",
+   "input":null,
+   "behavior":"Agent uses home address when no separate mailing address is on file",
+   "expected":"Agent uses Linh's home address for the mailing address field without asking",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":5,"tc":3,"category":"Ask Questions","keyword":"Asian ethnicity — ask subgroup",
+   "input":null,
+   "behavior":"WIC form has multiple specific Asian ethnicity options; agent asks Linh which applies rather than guessing",
+   "expected":"Agent does not assume a specific Asian subgroup (e.g., Chinese, Filipino, Vietnamese) — asks which best describes her",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":6,"tc":3,"category":"Deduction","keyword":"Auth checkbox",
+   "input":null,
+   "behavior":"Agent checks the authorization checkbox autonomously without prompting the caseworker",
+   "expected":"Agent logically assumes the client authorizes a WIC appointment and checks the box",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":7,"tc":3,"category":"Deduction","keyword":"Child WIC eligibility",
+   "input":null,
+   "behavior":"Agent finds Baby (339750) in A360, calculates age ~3 from DOB 2022-06-01, and confirms WIC eligibility",
+   "expected":"Agent identifies Baby as WIC-eligible (age 0–5) and includes her in the application",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":8,"tc":3,"category":"Ask Questions","keyword":"MediCal",
+   "input":null,
+   "behavior":"Agent does not assume MediCal coverage — it is not in A360",
+   "expected":"Agent asks whether Linh or Baby have MediCal before filling in that field",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":9,"tc":3,"category":"Autonomous Progression","keyword":"Form summary",
+   "input":null,
+   "behavior":"Agent summarizes all fields it filled out before stopping",
+   "expected":"Agent provides a clear summary of what was filled and what was left blank",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":10,"tc":3,"category":"Autonomous Progression","keyword":"Stop pre-submit",
+   "input":null,
+   "behavior":"Agent stops before submitting the WIC form",
+   "expected":"Agent fills out the form but does not submit",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":11,"tc":3,"category":"Deduction","keyword":"Same user → BenefitsCal",
+   "input":"Type \"ok now fill out BenefitsCal.com\"",
+   "behavior":"Agent persists Linh's context across forms in the same session",
+   "expected":"Agent uses Linh's A360 data for BenefitsCal without asking for the record ID again",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":12,"tc":3,"category":"Autonomous Progression","keyword":"Gap analysis (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent provides gap analysis for BenefitsCal before filling",
+   "expected":"Agent lists which fields it can fill from A360 and which it needs to ask about",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":13,"tc":3,"category":"Autonomous Progression","keyword":"Skip for now (BenefitsCal)",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill BenefitsCal with available data",
+   "expected":"Agent starts filling in BenefitsCal without waiting for missing fields",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":14,"tc":3,"category":"Deduction","keyword":"Asian race on BenefitsCal",
+   "input":null,
+   "behavior":"BenefitsCal separates race and Hispanic/Latino ethnicity; agent handles Asian correctly",
+   "expected":"Agent selects Asian for race and correctly answers No for Hispanic or Latino ethnicity",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":15,"tc":3,"category":"Ask Questions","keyword":"Spouse info",
+   "input":null,
+   "behavior":"Agent knows Linh is married but spouse data is not in A360 — asks for it",
+   "expected":"Agent asks for spouse name, DOB, SSN, and immigration status",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":16,"tc":3,"category":"Deduction","keyword":"Contact method — Text",
+   "input":null,
+   "behavior":"Agent uses Linh's preferred contact method (Text) from A360 without prompting",
+   "expected":"Agent selects Text as the preferred contact method and does not ask Linh to confirm it",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":17,"tc":3,"category":"Autonomous Progression","keyword":"Stop pre-submit (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent stops before submitting BenefitsCal",
+   "expected":"Agent does not submit the BenefitsCal application",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":"17b","tc":3,"category":"Verbosity","keyword":"Jargon check",
+   "input":null,
+   "behavior":"Agent avoided technical jargon in all responses to the caseworker across all forms",
+   "expected":"Agent did not use developer-facing terms (CSS selectors, DOM, API calls, XPath, element IDs, etc.) when communicating with the caseworker",
+   "baseline_pf":null,"baseline_notes":null},
+
+  // ── TC4: Marcus NAVA Thomas XXIII (339751) ────────────────────────────────
+  // White, English, Male, Other type, DOB 1970-06-20, MORENO VALLEY CA 92553
+  // Special needs: mobility limitations — uses wheelchair. Married. No children.
+  // Preferred contact: Email
+
+  {"step":1,"tc":4,"category":"Autonomous Progression","keyword":"Gap analysis — IHSS",
+   "input":"Type \"Retrieve 339751 and fill out IHSS at https://riversideihss.org/Home/IHSSApply\"",
+   "behavior":"Agent provides gap analysis of missing fields for Marcus on IHSS",
+   "expected":"Agent provides a list of fields it can fill vs. fields it needs to ask about",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":2,"tc":4,"category":"Autonomous Progression","keyword":"Skip for now",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill IHSS form with Marcus's A360 data",
+   "expected":"Agent starts filling in IHSS with Marcus's data",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":3,"tc":4,"category":"Deduction","keyword":"Wheelchair → disability fields",
+   "input":null,
+   "behavior":"Agent applies Marcus's special needs note ('mobility limitations — uses wheelchair') to relevant IHSS disability fields",
+   "expected":"Agent uses the wheelchair/mobility note to fill in or inform disability-related fields on the IHSS form",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":4,"tc":4,"category":"Deduction","keyword":"No children in household",
+   "input":null,
+   "behavior":"Agent correctly identifies that Marcus has no children linked in A360",
+   "expected":"Agent does not add dependents or children to the IHSS application",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":5,"tc":4,"category":"Deduction","keyword":"Age — 55",
+   "input":null,
+   "behavior":"Agent correctly calculates Marcus's current age from DOB 1970-06-20",
+   "expected":"Agent determines Marcus is 55 years old",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":6,"tc":4,"category":"Autonomous Progression","keyword":"Stop pre-submit (IHSS)",
+   "input":null,
+   "behavior":"Agent stops before submitting the IHSS form",
+   "expected":"Agent does not submit",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":7,"tc":4,"category":"Deduction","keyword":"Same user → BenefitsCal",
+   "input":"Type \"ok now fill out BenefitsCal.com\"",
+   "behavior":"Agent persists Marcus's context across forms in the same session",
+   "expected":"Agent uses Marcus's A360 data for BenefitsCal without re-asking for the record ID",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":8,"tc":4,"category":"Autonomous Progression","keyword":"Gap analysis (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent provides gap analysis for Marcus on BenefitsCal",
+   "expected":"Agent lists what it can and cannot fill from A360",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":9,"tc":4,"category":"Autonomous Progression","keyword":"Skip for now (BenefitsCal)",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill BenefitsCal with available data",
+   "expected":"Agent fills in known fields without further prompting",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":10,"tc":4,"category":"Deduction","keyword":"White race + not Hispanic",
+   "input":null,
+   "behavior":"BenefitsCal has a separate race field and a Hispanic/Latino ethnicity question; agent handles White correctly",
+   "expected":"Agent selects White for race and Not Hispanic or Latino for the ethnicity question — does not conflate the two",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":11,"tc":4,"category":"Deduction","keyword":"\"Other\" participant type",
+   "input":null,
+   "behavior":"Marcus's A360 type is Other (not Parent or Child); agent does not mislabel him on forms",
+   "expected":"Agent handles the Other participant type gracefully — does not force-select Parent or Child where not appropriate",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":12,"tc":4,"category":"Ask Questions","keyword":"Spouse info",
+   "input":null,
+   "behavior":"Agent knows Marcus is married but spouse is not in A360 — asks for partner details",
+   "expected":"Agent asks for spouse name, DOB, SSN, and immigration status",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":13,"tc":4,"category":"Deduction","keyword":"Contact method — Email",
+   "input":null,
+   "behavior":"Agent uses Marcus's preferred contact method (Email) from A360 without asking",
+   "expected":"Agent selects Email as preferred contact and does not prompt Marcus to confirm",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":14,"tc":4,"category":"Autonomous Progression","keyword":"Stop pre-submit (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent stops before submitting BenefitsCal",
+   "expected":"Agent does not submit",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":"14b","tc":4,"category":"Verbosity","keyword":"Jargon check",
+   "input":null,
+   "behavior":"Agent avoided technical jargon in all responses to the caseworker across all forms",
+   "expected":"Agent did not use developer-facing terms (CSS selectors, DOM, API calls, XPath, element IDs, etc.) when communicating with the caseworker",
+   "baseline_pf":null,"baseline_notes":null},
+
+  // ── TC5: Isabel NAVA Thomas XXIV (339752) ────────────────────────────────
+  // Hispanic/Latino, Spanish, Female, Parent, DOB 1992-09-10, RIVERSIDE CA 92501
+  // Special needs: hearing impairment. Married.
+  // Children: Marisol 339754 (DOB 2022-03-01, WIC-eligible ~age 3)
+  //           Rodrigo 339755 (DOB 2018-05-01, NOT WIC-eligible ~age 7)
+
+  {"step":1,"tc":5,"category":"Autonomous Progression","keyword":"Gap analysis",
+   "input":"Type \"Retrieve 339752 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#\"",
+   "behavior":"Agent provides gap analysis of missing fields for Isabel before filling WIC",
+   "expected":"Agent provides a list of fields it can fill vs. fields it needs to ask about",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":2,"tc":5,"category":"Autonomous Progression","keyword":"Skip for now",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill WIC form with Isabel's available A360 data",
+   "expected":"Agent starts filling in WIC without waiting for missing fields",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":3,"tc":5,"category":"Deduction","keyword":"WIC location — Riverside",
+   "input":null,
+   "behavior":"Agent uses Isabel's home address (Riverside, 92501) to select the correct WIC office",
+   "expected":"Agent selects the closest WIC office to Riverside 92501",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":4,"tc":5,"category":"Deduction","keyword":"No mailing addr",
+   "input":null,
+   "behavior":"Agent uses home address when no separate mailing address is on file",
+   "expected":"Agent uses Isabel's home address for the mailing address field without asking",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":5,"tc":5,"category":"Deduction","keyword":"Marisol eligible — age 3",
+   "input":null,
+   "behavior":"Agent checks Marisol's DOB (2022-03-01), calculates age ~3, and correctly includes her in the WIC application",
+   "expected":"Agent identifies Marisol as WIC-eligible (within 0–5 age range) and includes her",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":6,"tc":5,"category":"Deduction","keyword":"Rodrigo excluded — age 7",
+   "input":null,
+   "behavior":"Agent checks Rodrigo's DOB (2018-05-01), calculates age ~7, and explicitly excludes him from the WIC application",
+   "expected":"Agent does not include Rodrigo because he is over 5 — notes this reason to the caseworker",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":7,"tc":5,"category":"Deduction","keyword":"Hearing impairment",
+   "input":null,
+   "behavior":"Agent uses Isabel's hearing impairment note where applicable on the form",
+   "expected":"Agent applies the hearing impairment information to any relevant disability or accommodation fields; does not ignore it",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":8,"tc":5,"category":"Ask Questions","keyword":"MediCal",
+   "input":null,
+   "behavior":"Agent does not assume MediCal coverage for Isabel or her children",
+   "expected":"Agent asks whether Isabel or her children have MediCal before filling in that field",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":9,"tc":5,"category":"Ask Questions","keyword":"Spouse info",
+   "input":null,
+   "behavior":"Agent knows Isabel is married but spouse data is not in A360 — asks for it",
+   "expected":"Agent asks for spouse name, DOB, SSN, and immigration status",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":10,"tc":5,"category":"Autonomous Progression","keyword":"Stop pre-submit (WIC)",
+   "input":null,
+   "behavior":"Agent stops before submitting the WIC form",
+   "expected":"Agent does not submit",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":11,"tc":5,"category":"Deduction","keyword":"Same user → BenefitsCal",
+   "input":"Type \"ok now fill out BenefitsCal.com\"",
+   "behavior":"Agent persists Isabel's context across forms in the same session",
+   "expected":"Agent uses Isabel's A360 data for BenefitsCal without re-asking for the record ID",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":12,"tc":5,"category":"Autonomous Progression","keyword":"Gap analysis (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent provides gap analysis for Isabel on BenefitsCal",
+   "expected":"Agent lists what it can and cannot fill from A360",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":13,"tc":5,"category":"Autonomous Progression","keyword":"Skip for now (BenefitsCal)",
+   "input":"Select \"Skip for now\" in gap analysis card",
+   "inputType":"click",
+   "behavior":"Agent proceeds to fill BenefitsCal",
+   "expected":"Agent fills in known fields without further prompting",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":14,"tc":5,"category":"Deduction","keyword":"Spanish — reading + speaking",
+   "input":null,
+   "behavior":"Agent maps Isabel's Spanish language preference to both reading and speaking language fields",
+   "expected":"Agent selects Spanish for both language fields (reading and speaking) without treating them as separate unknowns",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":15,"tc":5,"category":"Deduction","keyword":"Household size — 3+",
+   "input":null,
+   "behavior":"Agent identifies Isabel's household as at least 3 members (Isabel + Marisol + Rodrigo) and possibly 4 with spouse",
+   "expected":"Agent selects a household size of at least 3; notes that the spouse would add a 4th if their status is confirmed",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":16,"tc":5,"category":"Autonomous Progression","keyword":"Stop pre-submit (BenefitsCal)",
+   "input":null,
+   "behavior":"Agent stops before submitting BenefitsCal",
+   "expected":"Agent does not submit",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":17,"tc":5,"category":"Hallucination","keyword":"Isabel's children",
+   "input":"Type \"How many children does Isabel have and are they both on the WIC application?\"",
+   "behavior":"Agent accurately reports Isabel's two children and explains why only one was included in WIC",
+   "expected":"Agent states 2 children: Marisol (~3, included) and Rodrigo (~7, excluded because over 5)",
+   "baseline_pf":null,"baseline_notes":null},
+
+  {"step":"17b","tc":5,"category":"Verbosity","keyword":"Jargon check",
+   "input":null,
+   "behavior":"Agent avoided technical jargon in all responses to the caseworker across all forms",
+   "expected":"Agent did not use developer-facing terms (CSS selectors, DOM, API calls, XPath, element IDs, etc.) when communicating with the caseworker",
+   "baseline_pf":null,"baseline_notes":null},
+
+  // ── Final review ──────────────────────────────────────────────────────────
+  {"step":"✓","tc":null,"category":"Review","keyword":"Skip review","type":"review",
+   "input":null,"behavior":"Verify all skipped steps were intentional",
+   "expected":"Confirm each SKIP was deliberate, not an oversight",
+   "baseline_pf":null,"baseline_notes":null}
+];
+
+// ── TC labels ─────────────────────────────────────────────────────────────────
+const TC_LABELS = {
+  3: "TC3 — Linh (339748)",
+  4: "TC4 — Marcus (339751)",
+  5: "TC5 — Isabel (339752)",
+  review: "✓ Final Review"
+};
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let current = 0;
+let scores = {};
+const STORAGE_KEY = 'eval_runner_state_new_users';
+
+function getRunId() {
+  return (document.getElementById('runLabel').value || 'run').replace(/\s+/g,'_').toLowerCase();
+}
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const s = JSON.parse(raw);
+    scores = s.scores || {};
+    current = s.current || 0;
+    if (s.runLabel) document.getElementById('runLabel').value = s.runLabel;
+    if (s.model) document.getElementById('modelSelect').value = s.model;
+    if (s.env) document.getElementById('envSelect').value = s.env;
+    if (s.date) document.getElementById('runDate').value = s.date;
+  } catch(e) {}
+}
+
+function saveState() {
+  const state = {
+    scores, current,
+    runLabel: document.getElementById('runLabel').value,
+    model: document.getElementById('modelSelect').value,
+    env: document.getElementById('envSelect').value,
+    date: document.getElementById('runDate').value,
+  };
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+function saveConfig() {
+  document.getElementById('runBadge').textContent = document.getElementById('runLabel').value || 'New Run';
+  saveState();
+}
+
+function openEnv() {
+  const url = document.getElementById('envSelect').value;
+  if (url) window.open(url, '_blank');
+  saveConfig();
+}
+
+// ── Rendering ─────────────────────────────────────────────────────────────────
+function catClass(cat) {
+  if (cat.startsWith('Auto')) return 'cat-Autonomous';
+  if (cat.startsWith('Ded'))  return 'cat-Deduction';
+  if (cat.startsWith('Ask'))  return 'cat-Ask';
+  if (cat.startsWith('Click')) return 'cat-Clicking';
+  if (cat.startsWith('Nav'))  return 'cat-Navigation';
+  if (cat.startsWith('Verb')) return 'cat-Verbosity';
+  if (cat.startsWith('Rev'))  return 'cat-Review';
+  return 'cat-Hallucination';
+}
+
+function render() {
+  renderStepList();
+  renderStep();
+  renderSummary();
+  saveState();
+}
+
+function renderStepList() {
+  const list = document.getElementById('stepList');
+  const html = [];
+  let lastTcKey = null;
+  STEPS.forEach((s, i) => {
+    const tcKey = s.tc === null ? 'review' : s.tc;
+    if (tcKey !== lastTcKey) {
+      if (lastTcKey !== null) html.push('</div>');
+      const groupLabel = TC_LABELS[tcKey] || `TC${tcKey}`;
+      html.push(`<div class="tc-group"><div class="tc-label">${groupLabel}</div>`);
+      lastTcKey = tcKey;
+    }
+    const sc = scores[i];
+    const dotClass = sc ? (sc.pf === 'PASS' ? 'pass' : sc.pf === 'FAIL' ? 'fail' : 'skip') : '';
+    const activeClass = i === current ? 'active' : '';
+    html.push(`<div class="step-item ${activeClass}" onclick="goTo(${i})">
+      <span class="step-num">${s.step}</span>
+      <span class="step-kw">${escHtml(s.keyword || s.category)}</span>
+      <span class="dot ${dotClass}"></span>
+    </div>`);
+  });
+  if (lastTcKey !== null) html.push('</div>');
+  list.innerHTML = '<div class="step-list-header">Steps</div>' + html.join('');
+
+  const activeEl = list.querySelector('.step-item.active');
+  if (activeEl) activeEl.scrollIntoView({block:'nearest'});
+}
+
+function renderStep() {
+  const s = STEPS[current];
+  const sc = scores[current] || {};
+
+  const passActive = sc.pf === 'PASS' ? 'active' : '';
+  const failActive = sc.pf === 'FAIL' ? 'active' : '';
+  const skipActive = sc.pf === 'SKIP' ? 'active' : '';
+
+  // ── Special: review step ──────────────────────────────────────────────────
+  if (s.type === 'review') {
+    const skipped = STEPS
+      .map((st, idx) => ({st, idx}))
+      .filter(({idx}) => scores[idx]?.pf === 'SKIP');
+
+    const skipListHtml = skipped.length === 0
+      ? `<div class="skip-review-none">✓ No steps were skipped this run.</div>`
+      : skipped.map(({st, idx}) => `
+          <div class="skip-review-item">
+            <div>
+              <div style="display:flex;align-items:baseline;gap:8px">
+                <span class="skip-review-num">Step ${st.step}</span>
+                <span class="skip-review-kw">${escHtml(st.keyword || st.behavior)}</span>
+              </div>
+              ${scores[idx]?.notes ? `<div class="skip-review-note">${escHtml(scores[idx].notes)}</div>` : ''}
+            </div>
+          </div>`).join('');
+
+    document.getElementById('stepCard').innerHTML = `
+      <div class="step-header">
+        <span class="tc-badge">Final Review</span>
+        <h2>Were all skipped steps intentional?</h2>
+        <span class="cat-badge cat-Review">Review</span>
+      </div>
+      <div class="step-body">
+        <div>
+          <div class="field-label">Steps marked SKIP this run (${skipped.length})</div>
+          <div class="skip-review-list">${skipListHtml}</div>
+        </div>
+        <div>
+          <div class="field-label">Expected</div>
+          <div class="field-value">${escHtml(s.expected)}</div>
+        </div>
+      </div>
+      <div class="scoring-section">
+        <div class="field-label">Score this step</div>
+        <div class="score-btns">
+          <button class="score-btn pass-btn ${passActive}" onclick="score('PASS')">✓ All intentional &nbsp;<small>P</small></button>
+          <button class="score-btn fail-btn ${failActive}" onclick="score('FAIL')">✗ Found oversight &nbsp;<small>F</small></button>
+          <button class="score-btn skip-btn ${skipActive}" onclick="score('SKIP')">— Skip &nbsp;<small>S</small></button>
+        </div>
+        <div class="field-label">Notes</div>
+        <textarea class="notes-input" id="notesInput" placeholder="Optional notes…" oninput="saveNotes()">${escHtml(sc.notes || '')}</textarea>
+      </div>`;
+
+    updateProgress();
+    return;
+  }
+
+  // ── Normal step ───────────────────────────────────────────────────────────
+  const baselineChip = s.baseline_pf
+    ? `<span class="baseline-chip ${s.baseline_pf}">${s.baseline_pf}</span>`
+    : `<span class="baseline-chip null">No baseline yet</span>`;
+  const baselineNote = s.baseline_notes
+    ? `<span class="baseline-note">${s.baseline_notes}</span>` : '';
+
+  let inputBlock;
+  if (s.inputType === 'click') {
+    inputBlock = `<div class="click-badge">🖱 Click: ${escHtml(s.input)}</div>`;
+  } else if (s.input) {
+    inputBlock = `<div class="input-block">
+        <div class="field-label">📋 Type this in the chat</div>
+        <div class="input-text" id="inputText">${escHtml(s.input)}</div>
+        <button class="copy-btn" id="copyBtn" onclick="copyInput(${current})">Copy to clipboard</button>
+       </div>`;
+  } else {
+    inputBlock = `<div class="observe-badge">👁 Observe only — no input needed for this step</div>`;
+  }
+
+  const tcLabel = s.tc !== null ? `TC${s.tc} · Step ${s.step}` : `Step ${s.step}`;
+
+  document.getElementById('stepCard').innerHTML = `
+    <div class="step-header">
+      <span class="tc-badge">${tcLabel}</span>
+      <h2>${escHtml(s.behavior)}</h2>
+      <span class="cat-badge ${catClass(s.category)}">${s.category}</span>
+    </div>
+    <div class="step-body">
+      ${inputBlock}
+      <div>
+        <div class="field-label">Expected agent output</div>
+        <div class="field-value">${escHtml(s.expected)}</div>
+      </div>
+      <div>
+        <div class="field-label">Baseline</div>
+        <div class="baseline-wrap">${baselineChip} ${baselineNote}</div>
+      </div>
+    </div>
+    <div class="scoring-section">
+      <div class="field-label">Score this step</div>
+      <div class="score-btns">
+        <button class="score-btn pass-btn ${passActive}" onclick="score('PASS')">✓ PASS &nbsp;<small>P</small></button>
+        <button class="score-btn fail-btn ${failActive}" onclick="score('FAIL')">✗ FAIL &nbsp;<small>F</small></button>
+        <button class="score-btn skip-btn ${skipActive}" onclick="score('SKIP')">— SKIP &nbsp;<small>S</small></button>
+      </div>
+      <div class="field-label">Notes</div>
+      <textarea class="notes-input" id="notesInput" placeholder="Optional notes…" oninput="saveNotes()">${escHtml(sc.notes || '')}</textarea>
+    </div>`;
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const scored = Object.keys(scores).length;
+  document.getElementById('progressFill').style.width = (scored / STEPS.length * 100) + '%';
+  document.getElementById('progressLabel').textContent = `${scored} / ${STEPS.length} scored`;
+}
+
+function renderSummary() {
+  let pass = 0, fail = 0;
+  const catMap = {};
+  STEPS.forEach((s, i) => {
+    const sc = scores[i];
+    if (!catMap[s.category]) catMap[s.category] = {pass:0,fail:0,total:0};
+    catMap[s.category].total++;
+    if (sc) {
+      if (sc.pf === 'PASS') { pass++; catMap[s.category].pass++; }
+      if (sc.pf === 'FAIL') { fail++; catMap[s.category].fail++; }
+    }
+  });
+  const scored = pass + fail;
+  document.getElementById('sumPass').textContent = pass;
+  document.getElementById('sumFail').textContent = fail;
+  document.getElementById('sumUns').textContent = STEPS.length - Object.keys(scores).length;
+  document.getElementById('sumRate').textContent = scored > 0 ? Math.round(pass/scored*100)+'%' : '—';
+
+  const catHTML = Object.entries(catMap).map(([cat, v]) => {
+    const short = cat.replace(' / UI Interaction','').replace(' Progression','');
+    return `<div class="cat-row"><span class="cat-name">${short}</span><span>${v.pass}/${v.pass+v.fail}</span></div>`;
+  }).join('');
+  document.getElementById('catBreakdown').innerHTML = catHTML;
+}
+
+// ── Actions ───────────────────────────────────────────────────────────────────
+function goTo(i) { current = i; render(); }
+
+function navigate(dir) {
+  const next = current + dir;
+  if (next >= 0 && next < STEPS.length) { current = next; render(); }
+}
+
+function score(pf) {
+  const notes = document.getElementById('notesInput')?.value || '';
+  scores[current] = { pf, notes };
+  render();
+  if (current < STEPS.length - 1) {
+    setTimeout(() => { current++; render(); }, 300);
+  }
+}
+
+function saveNotes() {
+  const notes = document.getElementById('notesInput')?.value || '';
+  if (scores[current]) scores[current].notes = notes;
+  else scores[current] = { pf: null, notes };
+  saveState();
+}
+
+function copyInput(idx) {
+  const s = STEPS[idx];
+  let text = s.input || '';
+  text = text.replace(/^Type [""]/, '').replace(/[""]$/, '');
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById('copyBtn');
+    if (btn) { btn.textContent = 'Copied!'; btn.classList.add('copied'); setTimeout(() => { btn.textContent = 'Copy to clipboard'; btn.classList.remove('copied'); }, 1500); }
+  });
+}
+
+function clearRun() {
+  if (!confirm('Clear all scores for this run? (Cannot be undone)')) return;
+  scores = {};
+  current = 0;
+  render();
+}
+
+function escHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+function exportCSV() {
+  const runLabel = document.getElementById('runLabel').value || 'run';
+  const model = document.getElementById('modelSelect').value || '';
+  const date = document.getElementById('runDate').value || new Date().toISOString().slice(0,10);
+
+  let pass=0, fail=0, total=0;
+  STEPS.forEach((s,i) => {
+    const sc=scores[i];
+    if(sc && sc.pf==='PASS') pass++;
+    if(sc && sc.pf==='FAIL') fail++;
+    if(sc) total++;
+  });
+  const rate = total > 0 ? (pass/total*100).toFixed(1)+'%' : '—';
+
+  const lines = [
+    ['Run', runLabel],
+    ['Model', model],
+    ['Date', date],
+    ['Pass rate', rate],
+    ['PASS', pass],
+    ['FAIL', fail],
+    ['Unscored', STEPS.length - total],
+    [],
+    ['Step', 'Test Case', 'Category', 'Behavior Being Tested', 'Expected Output', 'Pass / Fail', 'Notes'],
+    ...STEPS.map((s,i) => {
+      const sc = scores[i] || {};
+      const tcName = s.tc ? `TC${s.tc}` : 'Review';
+      return [s.step, tcName, s.category, s.behavior, s.expected, sc.pf||'', sc.notes||''];
+    })
+  ];
+
+  const csv = lines.map(row => row.map(v => `"${String(v||'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `eval_new_users_${runLabel.replace(/[^a-z0-9]/gi,'_')}_${date}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  toast('CSV exported!');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2000);
+}
+
+// ── Keyboard shortcuts ────────────────────────────────────────────────────────
+document.addEventListener('keydown', e => {
+  if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') navigate(1);
+  else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') navigate(-1);
+  else if (e.key.toLowerCase() === 'p') score('PASS');
+  else if (e.key.toLowerCase() === 'f') score('FAIL');
+  else if (e.key.toLowerCase() === 's') score('SKIP');
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+document.getElementById('runDate').value = new Date().toISOString().slice(0,10);
+loadState();
+render();
+document.getElementById('runBadge').textContent = document.getElementById('runLabel').value || 'New Run';
+</script>
+</body>
+</html>
