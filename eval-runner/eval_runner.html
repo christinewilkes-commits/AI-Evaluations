@@ -167,7 +167,12 @@
     <option value="">Select environment…</option>
     <option value="https://dev.labs-asp.navateam.com">Dev</option>
     <option value="https://labs-asp.navateam.com">Prod</option>
+    <option value="preview">Preview</option>
   </select>
+  <span id="prWrap" style="display:none; align-items:center; gap:6px;">
+    <label>PR #:</label>
+    <input type="text" id="prNumber" placeholder="e.g. 351" style="width:90px;" oninput="saveConfig()">
+  </span>
   <label>Date:</label>
   <input type="date" id="runDate" oninput="saveConfig()">
 </div>
@@ -305,7 +310,9 @@ function loadState() {
     if (s.runLabel) document.getElementById('runLabel').value = s.runLabel;
     if (s.model) document.getElementById('modelSelect').value = s.model;
     if (s.env) document.getElementById('envSelect').value = s.env;
+    if (s.prNumber) document.getElementById('prNumber').value = s.prNumber;
     if (s.date) document.getElementById('runDate').value = s.date;
+    document.getElementById('prWrap').style.display = s.env === 'preview' ? 'flex' : 'none';
   } catch(e) {}
 }
 
@@ -315,6 +322,7 @@ function saveState() {
     runLabel: document.getElementById('runLabel').value,
     model: document.getElementById('modelSelect').value,
     env: document.getElementById('envSelect').value,
+    prNumber: document.getElementById('prNumber').value,
     date: document.getElementById('runDate').value,
   };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -326,8 +334,10 @@ function saveConfig() {
 }
 
 function openEnv() {
-  const url = document.getElementById('envSelect').value;
-  if (url) window.open(url, '_blank');
+  const val = document.getElementById('envSelect').value;
+  const prWrap = document.getElementById('prWrap');
+  prWrap.style.display = val === 'preview' ? 'flex' : 'none';
+  if (val && val !== 'preview') window.open(val, '_blank');
   saveConfig();
 }
 
@@ -573,7 +583,10 @@ function escHtml(str) {
 function exportCSV() {
   const runLabel = document.getElementById('runLabel').value || 'run';
   const model = document.getElementById('modelSelect').value || '';
+  const env = document.getElementById('envSelect').value || '';
+  const prNumber = document.getElementById('prNumber').value || '';
   const date = document.getElementById('runDate').value || new Date().toISOString().slice(0,10);
+  const envLabel = env === 'preview' ? `Preview${prNumber ? ' — PR ' + prNumber : ''}` : env === 'https://dev.labs-asp.navateam.com' ? 'Dev' : env === 'https://labs-asp.navateam.com' ? 'Prod' : env;
 
   let pass=0, fail=0, total=0;
   STEPS.forEach((s,i) => {
@@ -588,6 +601,8 @@ function exportCSV() {
     ['Run', runLabel],
     ['Model', model],
     ['Date', date],
+    ['Environment', envLabel],
+    ...(prNumber ? [['PR', prNumber]] : []),
     ['Pass rate', rate],
     ['PASS', pass],
     ['FAIL', fail],
