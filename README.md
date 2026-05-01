@@ -25,6 +25,8 @@ agent-evals/
 
 ## Running an evaluation
 
+See **[docs/how-to-use-eval-runner.md](docs/how-to-use-eval-runner.md)** for a full step-by-step guide.
+
 ### Step 1 — Run the eval
 1. Open `eval-runner/eval_runner.html` in Chrome
 2. Enter the run label (e.g. `Run 5 — Opus 4.7`), model, and select the environment
