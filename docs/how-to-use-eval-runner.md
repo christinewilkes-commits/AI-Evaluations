@@ -83,6 +83,21 @@ The last item in the step list is a **Skip Review**. It shows all steps you mark
 
 ---
 
+## Saving and loading runs
+
+Your scores are auto-saved to the browser as you go, but you can also create named saves to come back to later — useful if you're running multiple evals across different sessions or want to compare runs side by side.
+
+In the right panel, below Export CSV, you'll find a **Saved Runs** section:
+
+- **💾 Save this run** — snapshots everything (all scores, notes, model, environment, PR #, date) under the run label. If a save with that label already exists, it will ask before overwriting.
+- **Dropdown** — lists all your saved runs by label.
+- **Load** — restores the selected run. If you have unsaved progress in the current session, it will warn you first.
+- **🗑** — permanently deletes the selected save.
+
+A few things to keep in mind: saves are stored in your browser's local storage, so they're tied to the specific browser and device you're using. They won't transfer to a colleague's machine, and they'll be lost if you clear your browser data. If you need to hand off a run, use **Export CSV** first.
+
+---
+
 ## Generating a comparison report
 
 Once you have two or more CSV exports, you can generate a `.docx` comparison report. See the main [README](../README.md) for instructions on using the report generator scripts in `report-generator/`.
