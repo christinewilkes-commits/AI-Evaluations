@@ -129,6 +129,17 @@
   .export-btn:hover { background: var(--blue); }
   .clear-btn { width: 100%; padding: 6px; background: white; color: var(--red); border: 1px solid var(--rbg); border-radius: 4px; font-size: 11px; cursor: pointer; margin-top: 4px; }
 
+  /* Saved runs */
+  .saves-section { margin-top: 12px; border-top: 1px solid var(--border); padding-top: 10px; }
+  .save-btn { width: 100%; padding: 7px; background: var(--gbg); color: var(--green); border: 1px solid #C6E0B4; border-radius: 4px; font-size: 12px; cursor: pointer; font-weight: bold; }
+  .save-btn:hover { background: #C6E0B4; }
+  .saves-select { width: 100%; border: 1px solid var(--border); border-radius: 4px; padding: 4px 6px; font-size: 12px; margin-top: 6px; }
+  .saves-actions { display: flex; gap: 4px; margin-top: 4px; }
+  .load-btn { flex: 1; padding: 5px; background: var(--blue); color: white; border: none; border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .load-btn:hover { background: var(--navy); }
+  .del-btn { padding: 5px 8px; background: white; color: var(--red); border: 1px solid var(--rbg); border-radius: 4px; font-size: 11px; cursor: pointer; }
+  .del-btn:hover { background: var(--rbg); }
+
   /* Toast */
   .toast { position: fixed; bottom: 20px; right: 20px; background: var(--navy); color: white; padding: 10px 18px; border-radius: 6px; font-size: 13px; opacity: 0; transition: opacity 0.3s; pointer-events: none; z-index: 999; }
   .toast.show { opacity: 1; }
@@ -219,6 +230,18 @@
     <div class="export-section">
       <button class="export-btn" onclick="exportCSV()">⬇ Export CSV</button>
       <button class="clear-btn" onclick="clearRun()">Clear this run</button>
+    </div>
+
+    <div class="saves-section">
+      <h3>Saved Runs</h3>
+      <button class="save-btn" onclick="saveRun()">💾 Save this run</button>
+      <select class="saves-select" id="savesSelect" size="1">
+        <option value="">— saved runs —</option>
+      </select>
+      <div class="saves-actions">
+        <button class="load-btn" onclick="loadRun()">Load</button>
+        <button class="del-btn" onclick="deleteRun()" title="Delete selected run">🗑</button>
+      </div>
     </div>
   </div>
 </div>
@@ -635,6 +658,75 @@ function toast(msg) {
   setTimeout(() => el.classList.remove('show'), 2000);
 }
 
+// ── Saved runs ────────────────────────────────────────────────────────────────
+const SAVES_KEY = 'eval_runner_saved_runs';
+
+function getSaves() {
+  try { return JSON.parse(localStorage.getItem(SAVES_KEY)) || {}; } catch(e) { return {}; }
+}
+
+function refreshSavesDropdown() {
+  const sel = document.getElementById('savesSelect');
+  const saves = getSaves();
+  const keys = Object.keys(saves).sort();
+  sel.innerHTML = keys.length
+    ? '<option value="">— select a run —</option>' + keys.map(k =>
+        `<option value="${escHtml(k)}">${escHtml(k)}</option>`).join('')
+    : '<option value="">— no saved runs —</option>';
+}
+
+function saveRun() {
+  const label = document.getElementById('runLabel').value.trim();
+  if (!label) { toast('Add a Run Label before saving'); return; }
+  const saves = getSaves();
+  if (saves[label] && !confirm(`Overwrite saved run "${label}"?`)) return;
+  saves[label] = {
+    scores, current,
+    runLabel: document.getElementById('runLabel').value,
+    model:    document.getElementById('modelSelect').value,
+    env:      document.getElementById('envSelect').value,
+    prNumber: document.getElementById('prNumber').value,
+    date:     document.getElementById('runDate').value,
+    savedAt:  new Date().toISOString(),
+  };
+  localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
+  refreshSavesDropdown();
+  document.getElementById('savesSelect').value = label;
+  toast(`Saved "${label}"`);
+}
+
+function loadRun() {
+  const key = document.getElementById('savesSelect').value;
+  if (!key) { toast('Select a saved run first'); return; }
+  const saves = getSaves();
+  const s = saves[key];
+  if (!s) return;
+  if (Object.keys(scores).length > 0 && !confirm('Load this run? Unsaved progress will be lost.')) return;
+  scores  = s.scores  || {};
+  current = s.current || 0;
+  if (s.runLabel)  document.getElementById('runLabel').value  = s.runLabel;
+  if (s.model)     document.getElementById('modelSelect').value = s.model;
+  if (s.env)       document.getElementById('envSelect').value   = s.env;
+  if (s.prNumber)  document.getElementById('prNumber').value    = s.prNumber;
+  if (s.date)      document.getElementById('runDate').value     = s.date;
+  document.getElementById('prWrap').style.display = s.env === 'preview' ? 'flex' : 'none';
+  document.getElementById('runBadge').textContent = s.runLabel || 'New Run';
+  saveState();
+  render();
+  toast(`Loaded "${key}"`);
+}
+
+function deleteRun() {
+  const key = document.getElementById('savesSelect').value;
+  if (!key) { toast('Select a saved run to delete'); return; }
+  if (!confirm(`Delete saved run "${key}"?`)) return;
+  const saves = getSaves();
+  delete saves[key];
+  localStorage.setItem(SAVES_KEY, JSON.stringify(saves));
+  refreshSavesDropdown();
+  toast(`Deleted "${key}"`);
+}
+
 // ── Keyboard shortcuts ────────────────────────────────────────────────────────
 document.addEventListener('keydown', e => {
   if (['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) return;
@@ -649,6 +741,7 @@ document.addEventListener('keydown', e => {
 document.getElementById('runDate').value = new Date().toISOString().slice(0,10);
 loadState();
 render();
+refreshSavesDropdown();
 document.getElementById('runBadge').textContent = document.getElementById('runLabel').value || 'New Run';
 </script>
 </body>
