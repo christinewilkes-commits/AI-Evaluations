@@ -25,15 +25,43 @@ agent-evals/
 
 ## Running an evaluation
 
-See **[docs/how-to-use-eval-runner.md](docs/how-to-use-eval-runner.md)** for a full step-by-step guide.
-
 ### Step 1 — Run the eval
 1. Open `eval-runner/eval_runner.html` in Chrome
-2. Enter the run label (e.g. `Run 5 — Opus 4.7`), model, and select the environment
-3. Work through all 61 steps — paste inputs from the Copy button, score with **P** / **F** keys
-4. Export CSV when done → save to `results/`
+2. On the landing screen, choose a suite:
+   - **Regression Suite** — TC1 (Rosa) + TC2 (Carolina), 57 steps
+   - **Shake-out** — TC3 (Rosa), 16 steps
+3. Enter the run label (e.g. `Run 11 — Opus 4.7`), model, and select the environment
+4. Work through all steps — paste inputs from the Copy button, score with **P** / **F** / **S** keys
+5. Export CSV when done → save to `results/`
 
 Repeat for each model you're comparing.
+
+---
+
+### Running in the Preview environment
+
+The Preview environment has no API connection to A360, so the agent cannot look up participant data by record ID. Before sending the first message of each test case, you must paste the user's data manually into the chat.
+
+**The runner handles this automatically when Preview is selected:**
+
+1. In the config bar, set Environment to **Preview** and enter the PR number
+2. Navigate to **Step 1** (TC1 start) — a yellow **⚠️ Preview Mode** block appears above the regular input
+3. Click **📋 Copy JSON** — this copies the full prompt + user data payload to your clipboard
+4. Paste into the agent chat and send — this is your TC1 opening message
+5. Continue scoring steps as normal; the yellow block only appears at the start of each test case
+6. When you reach **Step 42** (TC2 start), the block reappears with Carolina's data — copy and paste again before the first TC2 message
+7. For the **Shake-out suite**, the block appears at Step 1 with Rosa's data
+
+> **Why it includes the full first message:** The copied text starts with the retrieval command (`Retrieve 339688 and fill out the WIC form…`) followed by the JSON payload on the next line. Paste the whole thing as one message — the agent reads the JSON as its substitute A360 data source for the session.
+
+**What's in the JSON payloads:**
+
+| TC | User | Key data included |
+|----|------|-------------------|
+| TC1 / TC3 | Rosa Flores (339688) | Full profile, household members (Carlos Flores, DOB 2024-12-01), contact info, address (Menifee CA) |
+| TC2 | Carolina Delgado (339702) | Full profile, Special needs: Blind, no family profile linked, address (Lake Elsinore CA) |
+
+---
 
 ### Step 2 — Generate the report
 1. Open `report-generator/generate_report.js`
