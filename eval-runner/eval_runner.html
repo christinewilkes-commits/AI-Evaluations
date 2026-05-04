@@ -323,6 +323,16 @@ const PREVIEW_JSON = {
 // TC3 (shakeout) uses Rosa — same JSON as TC1
 PREVIEW_JSON[3] = PREVIEW_JSON[1];
 
+// Production uses different record IDs (separate A360 database)
+const PROD_IDS = { '339688': '390044', '339702': '414196' };
+
+function envInput(text) {
+  if (!text) return text;
+  const env = document.getElementById('envSelect')?.value || '';
+  if (env !== 'production') return text;
+  return text.replace(/339688/g, '390044').replace(/339702/g, '414196');
+}
+
 const REGRESSION_STEPS = [
   // ── TC1: Rosa (339688) — WIC ──────────────────────────────────────────────
   {"step":1,"tc":1,"category":"Autonomous Progression","keyword":"Gap analysis","input":"Type \"Retrieve 339688 and fill out the WIC form https://www.ruhealth.org/appointments/apply-4-wic-form#\"","behavior":"Agent provides gap analysis summary of missing fields","expected":"Agent provides list of missing fields","baseline_pf":"PASS","baseline_notes":null},
@@ -652,7 +662,7 @@ function renderStep() {
   } else if (s.input) {
     inputBlock = `<div class="input-block">
         <div class="field-label">📋 Type this in the chat</div>
-        <div class="input-text" id="inputText">${escHtml(s.input)}</div>
+        <div class="input-text" id="inputText">${escHtml(envInput(s.input))}</div>
         <button class="copy-btn" id="copyBtn" onclick="copyInput(${current})">Copy to clipboard</button>
        </div>`;
   } else {
@@ -763,7 +773,7 @@ function saveNotes() {
 
 function copyInput(idx) {
   const s = activeSteps[idx];
-  let text = s.input || '';
+  let text = envInput(s.input || '');
   text = text.replace(/^Type [""]/, '').replace(/[""]$/, '');
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.getElementById('copyBtn');
