@@ -26,7 +26,7 @@ agent-evals/
 ## Running an evaluation
 
 ### Test users
-All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs if you are testing in production.
+All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs, user profiles, and household data before running a session.
 
 ### Step 1 — Run the eval
 1. Download [`eval-runner/eval_runner.html`](https://github.com/christinewilkes-commits/AI-Evaluations/blob/main/eval-runner/eval_runner.html) and open it in Chrome
@@ -90,6 +90,9 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 
 ## Baseline reference
 
+> **Production baseline (Run 11):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Scored pass rate is 86.2% (50/56 scored steps).
+
+
 | Run | Date | Model | PR | Environment | Pass rate |
 |-----|------|-------|----|-------------|-----------|
 | Run 1 (Baseline) | Apr 20, 2026 | Opus 4.7 | none | Dev | 93.3% |
@@ -102,6 +105,7 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 | Run 8 (PR 347 Preview) | Apr 24, 2026 | Opus 4.7 | PR 347 | Preview | 89.8% |
 | Run 9 (PR 347 Preview) | Apr 27, 2026 | Opus 4.7 | PR 347 | Preview | 77.0% |
 | Run 10 (Dev manual baseline) | Apr 27, 2026 | Opus 4.7 | — | Dev | 86.9% |
+| **Run 11 (Production baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **86.2%** |
 
 ---
 
