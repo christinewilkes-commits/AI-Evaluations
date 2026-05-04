@@ -657,15 +657,15 @@ function renderStep() {
 
   let inputBlock;
   if (s.inputType === 'click') {
-    inputBlock = `<div class="click-badge">🖱 Click: ${escHtml(s.input)}</div>`;
+    inputBlock = `<div class="click-badge">🖱 &nbsp;Click: ${escHtml(s.input)}</div>`;
   } else if (s.input) {
     inputBlock = `<div class="input-block">
-        <div class="field-label">📋 Type this in the chat</div>
+        <div class="field-label">▶ Your action — type this in the agent chat</div>
         <div class="input-text" id="inputText">${escHtml(envInput(s.input))}</div>
         <button class="copy-btn" id="copyBtn" onclick="copyInput(${current})">Copy to clipboard</button>
        </div>`;
   } else {
-    inputBlock = `<div class="observe-badge">👁 Observe only — no input needed for this step</div>`;
+    inputBlock = `<div class="observe-badge">👁 &nbsp;Observe — no input needed, watch what the agent does</div>`;
   }
 
   const tcLabel = s.tc !== null ? `TC${s.tc} · Step ${s.step}` : `Step ${s.step}`;
@@ -685,7 +685,6 @@ function renderStep() {
   document.getElementById('stepCard').innerHTML = `
     <div class="step-header">
       <span class="tc-badge">${tcLabel}</span>
-      <h2>${escHtml(s.behavior)}</h2>
       <span class="cat-badge ${catClass(s.category)}">${s.category}</span>
     </div>
     <div class="step-body">
@@ -694,6 +693,10 @@ function renderStep() {
       <div>
         <div class="field-label">Expected agent output</div>
         <div class="field-value">${escHtml(s.expected)}</div>
+      </div>
+      <div>
+        <div class="field-label">What's being evaluated</div>
+        <div class="field-value" style="color:var(--grey);font-size:12px;">${escHtml(s.behavior)}</div>
       </div>
       <div>
         <div class="field-label">Baseline (Opus 4.7, Run 1)</div>
