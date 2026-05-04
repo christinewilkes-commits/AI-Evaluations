@@ -90,11 +90,11 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 
 ## Baseline reference
 
-> **Baseline (Run 1):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Scored pass rate is 86.2% (50/56 scored steps).
+> **Baseline (Run 1):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Pass rate is 89% (50/56 scored steps — SKIPs excluded from denominator).
 
 | Run | Date | Model | PR | Environment | Pass rate |
 |-----|------|-------|----|-------------|-----------|
-| **Run 1 (Baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **86.2%** |
+| **Run 1 (Baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **89%** |
 
 ---
 
