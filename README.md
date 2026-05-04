@@ -29,7 +29,7 @@ agent-evals/
 All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs if you are testing in production.
 
 ### Step 1 — Run the eval
-1. Open `eval-runner/eval_runner.html` in Chrome
+1. Download [`eval-runner/eval_runner.html`](https://github.com/christinewilkes-commits/AI-Evaluations/blob/main/eval-runner/eval_runner.html) and open it in Chrome
 2. On the landing screen, choose a suite:
    - **Regression Suite** — TC1 (Rosa) + TC2 (Carolina), 57 steps
    - **Shake-out** — TC3 (Rosa), 16 steps
