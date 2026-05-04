@@ -26,7 +26,7 @@ agent-evals/
 ## Running an evaluation
 
 ### Test users
-All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs, user profiles, and household data before running a session.
+All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs if you are testing in production.
 
 ### Step 1 — Run the eval
 1. Open `eval-runner/eval_runner.html` in Chrome
