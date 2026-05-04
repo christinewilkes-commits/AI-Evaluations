@@ -98,11 +98,14 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 
 ## Baseline reference
 
-> **Baseline (Run 1):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Pass rate is 89% (50/56 scored steps — SKIPs excluded from denominator).
+> SKIPs are excluded from the pass rate denominator — they reflect data gaps in the Production environment (Carlos not linked to Rosa's A360 record), not agent failures.
 
-| Run | Date | Model | PR | Environment | Pass rate |
-|-----|------|-------|----|-------------|-----------|
-| **Run 1 (Baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **89%** |
+| Run | Suite | Date | Model | PR | Environment | Pass rate |
+|-----|-------|------|-------|----|-------------|-----------|
+| **Run 1 (Baseline)** | **Regression Suite** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **89%** |
+| **Run 1 (Baseline)** | **Shake-out** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **88%** |
+
+CSV files: `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` · `results/eval_Shake-out_Baseline_2026-05-04.csv`
 
 ---
 
