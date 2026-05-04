@@ -329,7 +329,7 @@ const PROD_IDS = { '339688': '390044', '339702': '414196' };
 function envInput(text) {
   if (!text) return text;
   const env = document.getElementById('envSelect')?.value || '';
-  if (env !== 'production') return text;
+  if (env !== 'https://labs-asp.navateam.com') return text;
   return text.replace(/339688/g, '390044').replace(/339702/g, '414196');
 }
 
@@ -521,7 +521,6 @@ function openEnv() {
   const val = document.getElementById('envSelect').value;
   const prWrap = document.getElementById('prWrap');
   prWrap.style.display = val === 'preview' ? 'flex' : 'none';
-  if (val && val !== 'preview') window.open(val, '_blank');
   saveConfig();
   if (activeSuite) render(); // refresh step card so preview context block shows/hides
 }
