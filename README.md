@@ -33,7 +33,7 @@ All test users for Preview, Dev, and Production environments are in the **[Test 
 2. On the landing screen, choose a suite:
    - **Regression Suite** — TC1 (Rosa) + TC2 (Carolina), 57 steps
    - **Shake-out** — TC3 (Rosa), 16 steps
-3. Enter the run label (e.g. `Run 11 — Opus 4.7`), model, and select the environment
+3. Enter the run label (e.g. `Run 2 — Opus 4.7`), model, and select the environment
 4. Work through all steps — paste inputs from the Copy button, score with **P** / **F** / **S** keys
 5. Export CSV when done → save to `results/`
 
@@ -90,22 +90,11 @@ See `docs/Evaluation Data Sources - Reconciliation Guide.md` for how to pull and
 
 ## Baseline reference
 
-> **Production baseline (Run 11):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Scored pass rate is 86.2% (50/56 scored steps).
-
+> **Baseline (Run 1):** Use `results/eval_Regression_Suite_Baseline_Prod_Opus_4_7_2026-05-04.csv` as the reference when evaluating changes in the Dev environment. Two steps were SKIPped (Steps 5 and 30 — child-related questions) because Rosa's production A360 record does not have a child linked. Scored pass rate is 86.2% (50/56 scored steps).
 
 | Run | Date | Model | PR | Environment | Pass rate |
 |-----|------|-------|----|-------------|-----------|
-| Run 1 (Baseline) | Apr 20, 2026 | Opus 4.7 | none | Dev | 93.3% |
-| Run 2 | Apr 20, 2026 | Sonnet 4.6 | none | Dev | 78.3% (crashed) |
-| Run 3 | Apr 20, 2026 | Sonnet 4.6 | none | Dev | 86.7% |
-| Run 4 | Apr 23, 2026 | Opus 4.7 | PR 344 | Dev | 78.7% |
-| Run 5 | Apr 23, 2026 | Sonnet 4.6 | PR 344 | Dev | 78.3% |
-| Run 6 (PR 346 Preview) | Apr 23, 2026 | Opus 4.7 | PR 346 | Preview | 93.2% |
-| **Run 7 (PR 346 Dev — current baseline)** | **Apr 24, 2026** | **Opus 4.7** | **PR 346** | **Dev (merged)** | **95.0%** |
-| Run 8 (PR 347 Preview) | Apr 24, 2026 | Opus 4.7 | PR 347 | Preview | 89.8% |
-| Run 9 (PR 347 Preview) | Apr 27, 2026 | Opus 4.7 | PR 347 | Preview | 77.0% |
-| Run 10 (Dev manual baseline) | Apr 27, 2026 | Opus 4.7 | — | Dev | 86.9% |
-| **Run 11 (Production baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **86.2%** |
+| **Run 1 (Baseline)** | **May 4, 2026** | **Opus 4.7** | **—** | **Prod** | **86.2%** |
 
 ---
 
