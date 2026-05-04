@@ -26,7 +26,15 @@ agent-evals/
 ## Running an evaluation
 
 ### Test users
-All test users for Preview, Dev, and Production environments are in the **[Test Data spreadsheet](https://docs.google.com/spreadsheets/d/1ecZigYCghTTNh0XGyvB1yurPpMrh4xk_t1jwpjqXuyQ/edit?gid=1643921580#gid=1643921580)**. Use this to look up record IDs, user profiles, and household data before running a session.
+
+The runner automatically uses the correct record IDs based on the environment you select — no manual lookup needed.
+
+| User | Dev / Preview ID | Production ID |
+|------|-----------------|---------------|
+| Rosa Flores (TC1, TC3) | 339688 | 390044 |
+| Carolina Delgado (TC2) | 339702 | 414196 |
+
+When **Production** is selected, all prompts and copy buttons swap to the production IDs automatically.
 
 ### Step 1 — Run the eval
 1. Download [`eval-runner/eval_runner.html`](https://github.com/christinewilkes-commits/AI-Evaluations/blob/main/eval-runner/eval_runner.html) and open it in Chrome
